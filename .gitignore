@@ -1,0 +1,30 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Database and Logs
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+logs/*.log
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor and IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

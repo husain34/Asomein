@@ -1,0 +1,205 @@
+"""
+asomien/agents/analytics_agent.py
+
+Analytics agent for collecting post metrics and audience snapshots.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import sqlite3
+from datetime import date, datetime, timezone
+from typing import Any, Optional
+from uuid import uuid4
+
+from asomien.agents.base_agent import BaseAgent
+from asomien.memory.migrations import run_migrations
+from asomien.memory.nodes import MetricsSnapshot
+from asomien.platforms.base_platform import BasePlatformAdapter
+
+logger = logging.getLogger(__name__)
+
+
+class AnalyticsAgent(BaseAgent):
+    """Collect metrics from the Threads adapter and write append-only snapshots."""
+
+    def __init__(
+        self,
+        adapter: Optional[BasePlatformAdapter] = None,
+        metrics_db_path: str = "data/metrics.db",
+    ) -> None:
+        super().__init__(name="AnalyticsAgent")
+        self.adapter = adapter
+        self.metrics_db_path = metrics_db_path
+
+    def run(self) -> None:
+        self.start()
+        self.log_action(
+            action="analytics_cycle",
+            reason="scheduled analytics collection",
+        )
+        self.stop()
+
+    def _connect(self) -> sqlite3.Connection:
+        run_migrations(
+            memory_db_path="data/memory.db",
+            metrics_db_path=self.metrics_db_path,
+            directives_db_path="data/directives.db",
+        )
+        conn = sqlite3.connect(self.metrics_db_path)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL;")
+        return conn
+
+    def _store_snapshot(self, snapshot: MetricsSnapshot) -> None:
+        conn = self._connect()
+        try:
+            conn.execute(
+                "INSERT INTO post_metrics (id, post_id, threads_post_id, snapshot_time, views, likes, replies, reposts, quotes, shares, creator_engagement_score) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    snapshot.id,
+                    snapshot.post_id,
+                    snapshot.threads_post_id,
+                    snapshot.snapshot_time.isoformat(),
+                    snapshot.views,
+                    snapshot.likes,
+                    snapshot.replies,
+                    snapshot.reposts,
+                    snapshot.quotes,
+                    snapshot.shares,
+                    snapshot.creator_engagement_score,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def compute_creator_engagement_score(self, metrics: dict[str, Any]) -> float:
+        views = max(int(metrics.get("views", 0) or 0), 1)
+        likes = int(metrics.get("likes", 0) or 0)
+        replies = int(metrics.get("replies", 0) or 0)
+        reposts = int(metrics.get("reposts", 0) or 0)
+        quotes = int(metrics.get("quotes", 0) or 0)
+        return (likes * 1 + replies * 27 + reposts * 5 + quotes * 8) / views
+
+    def collect_post_metrics(self, post: Any) -> MetricsSnapshot:
+        if self.adapter is None:
+            raise RuntimeError("AnalyticsAgent requires an adapter")
+
+        post_id = getattr(post, "id", str(post))
+        threads_post_id = getattr(post, "threads_post_id", "")
+        if not threads_post_id:
+            threads_post_id = str(post_id)
+
+        payload = self.adapter.get_post_metrics(threads_post_id)
+        metric_fields = {
+            "views": 0,
+            "likes": 0,
+            "replies": 0,
+            "reposts": 0,
+            "quotes": 0,
+            "shares": 0,
+        }
+
+        def _safe_int(value: Any) -> int:
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return 0
+
+        # Support both the legacy flat payload shape and the Meta nested insights shape.
+        for key in metric_fields:
+            if key in payload:
+                metric_fields[key] = _safe_int(payload.get(key))
+
+        data = payload.get("data")
+        if isinstance(data, list):
+            for item in data:
+                if not isinstance(item, dict):
+                    continue
+                name = item.get("name")
+                if name not in metric_fields:
+                    continue
+                values = item.get("values")
+                if isinstance(values, list) and values:
+                    first_value = values[0]
+                    if isinstance(first_value, dict):
+                        metric_fields[name] = _safe_int(first_value.get("value"))
+        elif isinstance(data, dict):
+            for key in metric_fields:
+                if key in data:
+                    metric_fields[key] = _safe_int(data.get(key))
+
+        snapshot = MetricsSnapshot(
+            post_id=post_id,
+            threads_post_id=threads_post_id,
+            views=metric_fields["views"],
+            likes=metric_fields["likes"],
+            replies=metric_fields["replies"],
+            reposts=metric_fields["reposts"],
+            quotes=metric_fields["quotes"],
+            shares=metric_fields["shares"],
+        )
+        snapshot.creator_engagement_score = self.compute_creator_engagement_score(
+            {
+                "views": snapshot.views,
+                "likes": snapshot.likes,
+                "replies": snapshot.replies,
+                "reposts": snapshot.reposts,
+                "quotes": snapshot.quotes,
+            }
+        )
+        self._store_snapshot(snapshot)
+        return snapshot
+
+    def collect_audience_snapshot(self) -> dict[str, Any]:
+        if self.adapter is None:
+            raise RuntimeError("AnalyticsAgent requires an adapter")
+
+        payload = self.adapter.get_audience_insights()
+        return payload
+
+    def aggregate_daily_stats(self, date_str: Optional[str] = None) -> dict[str, Any]:
+        day = date_str or date.today().isoformat()
+        conn = self._connect()
+        try:
+            row = conn.execute(
+                "SELECT COUNT(*) AS count, SUM(views) AS views, SUM(likes) AS likes, SUM(replies) AS replies, SUM(reposts) AS reposts, SUM(quotes) AS quotes, SUM(shares) AS shares, AVG(creator_engagement_score) AS avg_score FROM post_metrics WHERE date(snapshot_time) = ?",
+                (day,),
+            ).fetchone()
+            result = {
+                "date": day,
+                "posts_published": int(row["count"] or 0),
+                "total_views": int(row["views"] or 0),
+                "total_likes": int(row["likes"] or 0),
+                "total_replies_received": int(row["replies"] or 0),
+                "total_reposts": int(row["reposts"] or 0),
+                "total_quotes": int(row["quotes"] or 0),
+                "total_shares": int(row["shares"] or 0),
+                "avg_creator_engagement_score": float(row["avg_score"] or 0.0),
+            }
+            return result
+        finally:
+            conn.close()
+
+    def log_warmup_day(self, day_number: Optional[int] = None) -> None:
+        day = (
+            day_number
+            if day_number is not None
+            else int(date.today().strftime("%d"))
+        )
+        conn = self._connect()
+        try:
+            conn.execute(
+                "INSERT OR IGNORE INTO warmup_log (id, day_number, posts_published, replies_published, phase_status, logged_at) VALUES (?, ?, 0, 0, ?, ?)",
+                (
+                    str(uuid4()),
+                    day,
+                    "active",
+                    datetime.now(timezone.utc).isoformat(),
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
