@@ -1,0 +1,2502 @@
+[
+  {
+    "id": "dramatic_01",
+    "pattern": "not to be dramatic but {mild_situation_treated_as_catastrophe} and i will never recover",
+    "reply_trigger": "relatable shared suffering"
+  },
+  {
+    "id": "dramatic_02",
+    "pattern": "i am going through something. specifically {minor_inconvenience}. prayers appreciated",
+    "reply_trigger": "ironic support request"
+  },
+  {
+    "id": "dramatic_03",
+    "pattern": "woke up and immediately remembered {mildly_annoying_fact}. today is already ruined",
+    "reply_trigger": "morning dread solidarity"
+  },
+  {
+    "id": "dramatic_04",
+    "pattern": "scientists have not studied the damage that {small_daily_thing} does to the human spirit",
+    "reply_trigger": "universal unspoken pain"
+  },
+  {
+    "id": "dramatic_05",
+    "pattern": "i am a changed person after {mundane_experience}. i will not be taking questions",
+    "reply_trigger": "dramatic transformation humor"
+  },
+  {
+    "id": "dramatic_06",
+    "pattern": "genuinely cannot believe i have to {basic_adult_task} again. when does it stop",
+    "reply_trigger": "adulting exhaustion"
+  },
+  {
+    "id": "dramatic_07",
+    "pattern": "the way {minor_inconvenience} has me questioning everything i thought i knew about myself",
+    "reply_trigger": "existential overthink"
+  },
+  {
+    "id": "dramatic_08",
+    "pattern": "nobody warned me that {normal_life_thing} was going to be like this",
+    "reply_trigger": "life disappointment"
+  },
+  {
+    "id": "dramatic_09",
+    "pattern": "sending love to everyone who also {relatable_bad_habit} at 2am and then lies there thinking about it",
+    "reply_trigger": "late night solidarity"
+  },
+  {
+    "id": "dramatic_10",
+    "pattern": "just found out that {mildly_annoying_discovery} and i need a moment",
+    "reply_trigger": "minor revelation drama"
+  },
+  {
+    "id": "threeam_01",
+    "pattern": "it is 3am and i am thinking about {random_intrusive_thought} again. as one does",
+    "reply_trigger": "3am brain chaos"
+  },
+  {
+    "id": "threeam_02",
+    "pattern": "3am brain: hey remember {embarrassing_thing_from_years_ago}? me: please no. brain: anyway\u2014",
+    "reply_trigger": "intrusive memory relatable"
+  },
+  {
+    "id": "threeam_03",
+    "pattern": "me at 11pm: i'll sleep early tonight. me at {absurdly_late_time}: still scrolling. no thoughts. just vibes",
+    "reply_trigger": "sleep procrastination"
+  },
+  {
+    "id": "threeam_04",
+    "pattern": "the version of me that stays up until {late_hour} making {pointless_decision} is not well",
+    "reply_trigger": "late night chaos"
+  },
+  {
+    "id": "threeam_05",
+    "pattern": "3am is genuinely just my brain's scheduled time to replay {cringe_memory} in hd",
+    "reply_trigger": "intrusive thought comedy"
+  },
+  {
+    "id": "threeam_06",
+    "pattern": "at {ungodly_hour} my brain goes: okay but what if you just {bad_idea_at_night}",
+    "reply_trigger": "late night bad ideas"
+  },
+  {
+    "id": "threeam_07",
+    "pattern": "fell asleep at {reasonable_hour} and woke up at 3am thinking about {random_unresolved_thing}. so we're doing this",
+    "reply_trigger": "sleep disruption comedy"
+  },
+  {
+    "id": "threeam_08",
+    "pattern": "the midnight version of me would like to apologize to the 8am version of me for {last_night_decision}",
+    "reply_trigger": "regret humor"
+  },
+  {
+    "id": "threeam_09",
+    "pattern": "insomnia hits different when your brain decides to run a full {embarrassing_memory} director's cut",
+    "reply_trigger": "sleepless oversharing"
+  },
+  {
+    "id": "threeam_10",
+    "pattern": "i don't have thoughts at 3am i have {intrusive_thing} and a parasocial relationship with my ceiling",
+    "reply_trigger": "awake relatability"
+  },
+  {
+    "id": "email_01",
+    "pattern": "the phrase '{corporate_email_phrase}' has sent me into a full spiral. i need to go lie down",
+    "reply_trigger": "work email dread"
+  },
+  {
+    "id": "email_02",
+    "pattern": "getting an email that starts with 'per my last email' is a form of violence i am not prepared for",
+    "reply_trigger": "passive aggressive office"
+  },
+  {
+    "id": "email_03",
+    "pattern": "someone just replied all to {email_thread_size} people to say '{unnecessary_reply}' and i have never felt more tired",
+    "reply_trigger": "office chaos solidarity"
+  },
+  {
+    "id": "email_04",
+    "pattern": "my toxic trait is reading an email, closing it, and pretending i'll respond to it later and then never doing that",
+    "reply_trigger": "procrastination confession"
+  },
+  {
+    "id": "email_05",
+    "pattern": "the way my heart rate goes up seeing an email subject that just says '{ominous_subject_line}'",
+    "reply_trigger": "corporate anxiety spike"
+  },
+  {
+    "id": "email_06",
+    "pattern": "i have {number} unread emails and i have decided they are someone else's problem now",
+    "reply_trigger": "inbox abandonment humor"
+  },
+  {
+    "id": "email_07",
+    "pattern": "nothing ages you faster than someone saying 'circling back' when you were hoping they forgot",
+    "reply_trigger": "corporate phrase horror"
+  },
+  {
+    "id": "email_08",
+    "pattern": "getting cc'd on an email you don't understand and just replying '{safe_corporate_reply}' and hoping for the best",
+    "reply_trigger": "work confusion coping"
+  },
+  {
+    "id": "email_09",
+    "pattern": "the audacity of {day_of_week} morning emails that start with 'quick question'",
+    "reply_trigger": "monday dread solidarity"
+  },
+  {
+    "id": "email_10",
+    "pattern": "my out of office message is the only part of my job where i feel genuinely free",
+    "reply_trigger": "work escape fantasy"
+  },
+  {
+    "id": "email_11",
+    "pattern": "someone put '{unclear_meeting_title}' as a calendar invite title and i have been anxious about it for {time_period}",
+    "reply_trigger": "meeting anxiety humor"
+  },
+  {
+    "id": "email_12",
+    "pattern": "the specific dread of an email that ends with 'let's hop on a call'",
+    "reply_trigger": "call avoidance solidarity"
+  },
+  {
+    "id": "email_13",
+    "pattern": "typing and deleting {email_response} seventeen times before sending 'sounds good!'",
+    "reply_trigger": "overthinking work response"
+  },
+  {
+    "id": "email_14",
+    "pattern": "adding 'please let me know if you have any questions!' to the end of an email i hope nobody reads",
+    "reply_trigger": "corporate autopilot"
+  },
+  {
+    "id": "email_15",
+    "pattern": "the 4:58pm email on a friday that starts with 'just a heads up for monday' is a hate crime",
+    "reply_trigger": "friday email outrage"
+  },
+  {
+    "id": "phone_01",
+    "pattern": "my screen time report said {embarrassing_hours} and i said okay and closed the app",
+    "reply_trigger": "screen time denial"
+  },
+  {
+    "id": "phone_02",
+    "pattern": "the audacity of my phone to notify me that i've spent {embarrassing_time} on {app_name} today as if i don't know",
+    "reply_trigger": "phone addiction called out"
+  },
+  {
+    "id": "phone_03",
+    "pattern": "opened {social_media_app}, closed it, opened it again 30 seconds later. we are not okay",
+    "reply_trigger": "doomscroll loop"
+  },
+  {
+    "id": "phone_04",
+    "pattern": "i put my phone down and lasted {embarrassingly_short_time} before picking it back up. personal record",
+    "reply_trigger": "phone addiction comedy"
+  },
+  {
+    "id": "phone_05",
+    "pattern": "my phone battery is at {low_percentage}% and i am treating it like a genuine emergency",
+    "reply_trigger": "low battery panic"
+  },
+  {
+    "id": "phone_06",
+    "pattern": "the irrational fear of seeing {notification_type} notifications when you unlock your phone after being offline for 2 hours",
+    "reply_trigger": "notification anxiety"
+  },
+  {
+    "id": "phone_07",
+    "pattern": "just watched {time_lost_to_scrolling} of content and retained nothing. this is fine. i am fine",
+    "reply_trigger": "mindless scroll confession"
+  },
+  {
+    "id": "phone_08",
+    "pattern": "me explaining to my phone why i need {dumb_permission} at midnight: it's complicated",
+    "reply_trigger": "phone permission irony"
+  },
+  {
+    "id": "phone_09",
+    "pattern": "phone said my top app this week was {embarrassing_app} and honestly i respect her honesty",
+    "reply_trigger": "app usage embarrassment"
+  },
+  {
+    "id": "phone_10",
+    "pattern": "the way i hold my phone {weird_phone_position} and then wonder why my {body_part} hurts",
+    "reply_trigger": "phone posture humor"
+  },
+  {
+    "id": "phone_11",
+    "pattern": "accidentally opened the camera in selfie mode and made {unflattering_discovery} my problem now",
+    "reply_trigger": "accidental selfie horror"
+  },
+  {
+    "id": "phone_12",
+    "pattern": "my phone is at {low_percentage}% and i am rationing notifications like it's wartime",
+    "reply_trigger": "battery anxiety drama"
+  },
+  {
+    "id": "phone_13",
+    "pattern": "the grief of watching a reel, trying to find it again and it's just {completely_gone}. internet archaeology",
+    "reply_trigger": "lost content grief"
+  },
+  {
+    "id": "phone_14",
+    "pattern": "scrolled {platform_name} for so long i started seeing {weird_algorithm_content}. time to log off. i won't though",
+    "reply_trigger": "algorithm rabbit hole"
+  },
+  {
+    "id": "phone_15",
+    "pattern": "sent {number} texts today and received {smaller_number} replies. thriving",
+    "reply_trigger": "left on read comedy"
+  },
+  {
+    "id": "catastrophe_01",
+    "pattern": "the {everyday_object} is {minor_malfunction} and i am handling it with the grace of someone who is not handling it",
+    "reply_trigger": "object malfunction drama"
+  },
+  {
+    "id": "catastrophe_02",
+    "pattern": "just spilled {liquid} on {surface} and i would like to be excused from the rest of the day",
+    "reply_trigger": "minor spill catastrophe"
+  },
+  {
+    "id": "catastrophe_03",
+    "pattern": "{everyday_task} did not go as planned and now i need {disproportionate_response}",
+    "reply_trigger": "task failure drama"
+  },
+  {
+    "id": "catastrophe_04",
+    "pattern": "my {household_item} just made a noise i've never heard before and i've decided not to investigate",
+    "reply_trigger": "appliance horror avoidance"
+  },
+  {
+    "id": "catastrophe_05",
+    "pattern": "the {small_thing} is broken and my entire routine has been dismantled at a cellular level",
+    "reply_trigger": "routine disruption spiral"
+  },
+  {
+    "id": "catastrophe_06",
+    "pattern": "i forgot to {small_task} and now i'm entering a thought spiral that will last until {future_date}",
+    "reply_trigger": "anxiety spiral comedy"
+  },
+  {
+    "id": "catastrophe_07",
+    "pattern": "dropped my {item} and just stared at it on the floor for {time_period} before doing anything",
+    "reply_trigger": "frozen by disaster"
+  },
+  {
+    "id": "catastrophe_08",
+    "pattern": "the {food_item} was supposed to be {food_expectation} and it was not. i am in mourning",
+    "reply_trigger": "food disappointment grief"
+  },
+  {
+    "id": "catastrophe_09",
+    "pattern": "there is a {minor_bug} in my apartment and we are now roommates whether i like it or not",
+    "reply_trigger": "bug coexistence humor"
+  },
+  {
+    "id": "catastrophe_10",
+    "pattern": "accidentally liked a post from {time_period_ago} while stalking someone's profile. i am relocating",
+    "reply_trigger": "social media stalker caught"
+  },
+  {
+    "id": "anthropomorphize_01",
+    "pattern": "my {household_object} has been judging my choices lately and honestly it's not wrong",
+    "reply_trigger": "object judgment comedy"
+  },
+  {
+    "id": "anthropomorphize_02",
+    "pattern": "the wifi router is {wifi_behavior} again and i think it can sense my desperation",
+    "reply_trigger": "wifi resentment humor"
+  },
+  {
+    "id": "anthropomorphize_03",
+    "pattern": "my {appliance} quit on me the moment i needed it most. i raised it better than this",
+    "reply_trigger": "appliance betrayal"
+  },
+  {
+    "id": "anthropomorphize_04",
+    "pattern": "my fridge has been making {weird_fridge_sound} and i think it's trying to tell me something",
+    "reply_trigger": "appliance communication"
+  },
+  {
+    "id": "anthropomorphize_05",
+    "pattern": "the printer sensed my deadline and has chosen violence. respect honestly",
+    "reply_trigger": "printer chaos solidarity"
+  },
+  {
+    "id": "anthropomorphize_06",
+    "pattern": "my phone charger is only working if i hold it at {specific_angle} and i am not in a position to negotiate",
+    "reply_trigger": "broken charger negotiation"
+  },
+  {
+    "id": "anthropomorphize_07",
+    "pattern": "the elevator button i pressed is ignoring me and i will not be taking this personally. (i am taking it personally)",
+    "reply_trigger": "elevator button snub"
+  },
+  {
+    "id": "anthropomorphize_08",
+    "pattern": "my {object} knows what it did and is choosing not to apologize",
+    "reply_trigger": "object gaslighting humor"
+  },
+  {
+    "id": "anthropomorphize_09",
+    "pattern": "the vending machine took my {amount} and gave me nothing and i am pressing the button again like that will fix things",
+    "reply_trigger": "vending machine betrayal"
+  },
+  {
+    "id": "anthropomorphize_10",
+    "pattern": "my autocorrect changed {word} to {wrong_word} and i feel personally targeted",
+    "reply_trigger": "autocorrect betrayal"
+  },
+  {
+    "id": "anthropomorphize_11",
+    "pattern": "my {tech_device} has entered a new era and the new era is spite",
+    "reply_trigger": "tech device rivalry"
+  },
+  {
+    "id": "anthropomorphize_12",
+    "pattern": "the algorithm has been showing me {weird_content} and i think it knows things about me that i don't",
+    "reply_trigger": "algorithm omniscience fear"
+  },
+  {
+    "id": "anthropomorphize_13",
+    "pattern": "my car made a sound and then stopped making the sound and now we're both pretending it didn't happen",
+    "reply_trigger": "car denial humor"
+  },
+  {
+    "id": "anthropomorphize_14",
+    "pattern": "the {kitchen_appliance} has been passive aggressive since {incident} and the tension is palpable",
+    "reply_trigger": "appliance grudge comedy"
+  },
+  {
+    "id": "anthropomorphize_15",
+    "pattern": "my {plant} is dying but making eye contact with me while doing it. powerful",
+    "reply_trigger": "plant drama solidarity"
+  },
+  {
+    "id": "toxic_trait_01",
+    "pattern": "my toxic trait is {bad_habit_framed_positively} and i've made peace with it",
+    "reply_trigger": "self aware bad habit"
+  },
+  {
+    "id": "toxic_trait_02",
+    "pattern": "i have {number} tabs open and {smaller_number} braincells left and we're making it work",
+    "reply_trigger": "chaotic multitasking humor"
+  },
+  {
+    "id": "toxic_trait_03",
+    "pattern": "my roman empire is {weird_specific_fixation} and i think about it more than is reasonable",
+    "reply_trigger": "fixation confession"
+  },
+  {
+    "id": "toxic_trait_04",
+    "pattern": "the way i {self_destructive_habit} and then act surprised when {predictable_consequence} happens",
+    "reply_trigger": "cause and effect denial"
+  },
+  {
+    "id": "toxic_trait_05",
+    "pattern": "i set {number} alarms for {time} and will ignore all of them with the confidence of someone who is not going to be late",
+    "reply_trigger": "alarm ignore confidence"
+  },
+  {
+    "id": "toxic_trait_06",
+    "pattern": "my villain era is just me {mildly_unhinged_behavior} at 11pm and calling it self care",
+    "reply_trigger": "villain era redefinition"
+  },
+  {
+    "id": "toxic_trait_07",
+    "pattern": "i googled {embarrassing_search} at 2am and now the algorithm thinks i'm {wrong_assumption}",
+    "reply_trigger": "search history shame"
+  },
+  {
+    "id": "toxic_trait_08",
+    "pattern": "said 'i'll start {goal} on monday' again. it is currently {any_day_not_monday}",
+    "reply_trigger": "monday excuse loop"
+  },
+  {
+    "id": "toxic_trait_09",
+    "pattern": "my love language is {unusual_love_language} and my destruction language is {self_sabotage_behavior}",
+    "reply_trigger": "love language parody"
+  },
+  {
+    "id": "toxic_trait_10",
+    "pattern": "i have been meaning to {task} for {embarrassingly_long_time} and today will not be the day either",
+    "reply_trigger": "procrastination solidarity"
+  },
+  {
+    "id": "intrusive_01",
+    "pattern": "why did my brain just randomly remind me of {embarrassing_thing_from_childhood}. i was having a good day",
+    "reply_trigger": "random memory attack"
+  },
+  {
+    "id": "intrusive_02",
+    "pattern": "current status: thinking about {weird_scenario} instead of sleeping like a normal person",
+    "reply_trigger": "weird late night brain"
+  },
+  {
+    "id": "intrusive_03",
+    "pattern": "the way my brain goes: 'hey what if {unnecessary_anxiety_thought}' right before i fall asleep",
+    "reply_trigger": "pre-sleep anxiety spike"
+  },
+  {
+    "id": "intrusive_04",
+    "pattern": "cannot stop thinking about {random_mildly_embarrassing_moment} from {long_time_ago}. the brain is cruel",
+    "reply_trigger": "past embarrassment haunting"
+  },
+  {
+    "id": "intrusive_05",
+    "pattern": "my brain's favorite genre is '{old_cringe}' played on repeat at maximum volume during quiet moments",
+    "reply_trigger": "cringe memory loop"
+  },
+  {
+    "id": "intrusive_06",
+    "pattern": "tried to meditate and my brain immediately went: okay but what about {intrusive_scenario}",
+    "reply_trigger": "meditation fail humor"
+  },
+  {
+    "id": "intrusive_07",
+    "pattern": "accidentally replayed {awkward_moment} in my head for the 47th time today. involuntarily",
+    "reply_trigger": "involuntary replay comedy"
+  },
+  {
+    "id": "intrusive_08",
+    "pattern": "my brain said 'here's a fun memory from {years_ago} where you said {regrettable_thing}' and then dipped",
+    "reply_trigger": "memory ambush humor"
+  },
+  {
+    "id": "intrusive_09",
+    "pattern": "zoning out and then suddenly remembering {thing_you_forgot_to_do}. the panic is immediate and total",
+    "reply_trigger": "forgotten task panic"
+  },
+  {
+    "id": "intrusive_10",
+    "pattern": "i was completely fine until my brain decided to replay {awkward_interaction} in slow motion. thanks brain",
+    "reply_trigger": "brain betrayal comedy"
+  },
+  {
+    "id": "food_01",
+    "pattern": "the {food} was not what i expected and i have been processing this for {time_period}",
+    "reply_trigger": "food disappointment grief"
+  },
+  {
+    "id": "food_02",
+    "pattern": "ordered {food_item} and when it arrived i was already in a different emotional state than the person who ordered it",
+    "reply_trigger": "food mood shift"
+  },
+  {
+    "id": "food_03",
+    "pattern": "my relationship with {food_item} is complicated and i will not be explaining further",
+    "reply_trigger": "food relationship mystery"
+  },
+  {
+    "id": "food_04",
+    "pattern": "the last {piece} of {snack} hit different because i knew it was the last one",
+    "reply_trigger": "last piece sadness"
+  },
+  {
+    "id": "food_05",
+    "pattern": "ate {food} at {wrong_time_of_day} and i am fully at peace with my choices",
+    "reply_trigger": "chaotic eating vindication"
+  },
+  {
+    "id": "food_06",
+    "pattern": "opened the fridge {number} times hoping something new would appear. still nothing. the fridge and i are at an impasse",
+    "reply_trigger": "fridge hope loop"
+  },
+  {
+    "id": "food_07",
+    "pattern": "the {delivery_service} estimated {time} and it has now been {longer_time} and i am entering my grief era",
+    "reply_trigger": "food delivery despair"
+  },
+  {
+    "id": "food_08",
+    "pattern": "burned {food_item} and am now eating it anyway because accountability is for quitters",
+    "reply_trigger": "cooking failure acceptance"
+  },
+  {
+    "id": "food_09",
+    "pattern": "cooked something for the first time and it turned out {unexpected_result}. starting a restaurant. goodbye",
+    "reply_trigger": "accidental cooking success"
+  },
+  {
+    "id": "food_10",
+    "pattern": "the {condiment} ran out mid-meal and i will be filing a formal complaint with the universe",
+    "reply_trigger": "condiment tragedy"
+  },
+  {
+    "id": "sleep_01",
+    "pattern": "went to bed at {reasonable_time} and somehow woke up more tired than before. sleep is a scam",
+    "reply_trigger": "sleep scam solidarity"
+  },
+  {
+    "id": "sleep_02",
+    "pattern": "slept for {many_hours} and still feel like {tired_description}. outstanding achievement",
+    "reply_trigger": "oversleep still tired"
+  },
+  {
+    "id": "sleep_03",
+    "pattern": "alarm went off and i did {number} snoozes and am now in a timeline where i am very late",
+    "reply_trigger": "snooze button chaos"
+  },
+  {
+    "id": "sleep_04",
+    "pattern": "the moment i get comfortable in bed my brain activates its {worry_type} protocol. every time",
+    "reply_trigger": "bedtime anxiety activation"
+  },
+  {
+    "id": "sleep_05",
+    "pattern": "napped for {short_time} and woke up in {wrong_timezone} emotionally. do not recommend",
+    "reply_trigger": "nap time warp"
+  },
+  {
+    "id": "sleep_06",
+    "pattern": "cannot decide if i'm tired because i slept too much or too little. the spectrum is vast",
+    "reply_trigger": "sleep ambiguity humor"
+  },
+  {
+    "id": "sleep_07",
+    "pattern": "my body decided {specific_ridiculous_time} is the new wake-up time and i was not consulted",
+    "reply_trigger": "body clock betrayal"
+  },
+  {
+    "id": "sleep_08",
+    "pattern": "fell asleep during {show_or_activity} and now have {plot_hole} shaped gap in my understanding of reality",
+    "reply_trigger": "sleep during content"
+  },
+  {
+    "id": "sleep_09",
+    "pattern": "told myself i'd sleep 'in a bit' at {early_time}. it is now {much_later_time}. we stay losing",
+    "reply_trigger": "sleep delay loop"
+  },
+  {
+    "id": "sleep_10",
+    "pattern": "my sleep schedule has {negative_description} and i am choosing to see that as a personality trait",
+    "reply_trigger": "sleep chaos reframe"
+  },
+  {
+    "id": "work_01",
+    "pattern": "a meeting that could have been an email was somehow also a meeting that could have been nothing",
+    "reply_trigger": "pointless meeting outrage"
+  },
+  {
+    "id": "work_02",
+    "pattern": "someone said 'let's be proactive about {vague_work_thing}' and i felt nothing because i have felt everything already",
+    "reply_trigger": "corporate buzzword fatigue"
+  },
+  {
+    "id": "work_03",
+    "pattern": "zoom called and chose violence today by {zoom_malfunction} at the exact wrong moment",
+    "reply_trigger": "video call chaos"
+  },
+  {
+    "id": "work_04",
+    "pattern": "pretended to take notes in the meeting. was actually making a list of {unrelated_list}. we adapt",
+    "reply_trigger": "meeting distraction humor"
+  },
+  {
+    "id": "work_05",
+    "pattern": "my camera is always 'not working' during {specific_meeting_type} and that is my one act of resistance",
+    "reply_trigger": "camera off rebellion"
+  },
+  {
+    "id": "work_06",
+    "pattern": "said 'sounds good' to {something_i_did_not_understand} and we're going to see how that plays out",
+    "reply_trigger": "work confusion coping"
+  },
+  {
+    "id": "work_07",
+    "pattern": "the way {coworker_behavior} has restructured my relationship with the concept of mondays",
+    "reply_trigger": "monday coworker drama"
+  },
+  {
+    "id": "work_08",
+    "pattern": "got a 'can we talk?' message at {time} on {day} and aged approximately {years} years",
+    "reply_trigger": "vague work message dread"
+  },
+  {
+    "id": "work_09",
+    "pattern": "logged off at {time} and immediately thought of {work_thing_i_forgot}. it can wait until {future_time}",
+    "reply_trigger": "post-logoff work thought"
+  },
+  {
+    "id": "work_10",
+    "pattern": "the 'just checking in' email is a weapon of mass psychological destruction",
+    "reply_trigger": "passive aggressive check-in"
+  },
+  {
+    "id": "work_11",
+    "pattern": "my productivity today was {embarrassing_metric} and i would like a round of applause for surviving",
+    "reply_trigger": "low productivity solidarity"
+  },
+  {
+    "id": "work_12",
+    "pattern": "dressed for {important_meeting} from the waist up and {chaos} from the waist down. professionalism",
+    "reply_trigger": "wfh outfit comedy"
+  },
+  {
+    "id": "work_13",
+    "pattern": "worked through lunch to finish {task} and it turns out {task} didn't matter. outstanding",
+    "reply_trigger": "wasted effort absurdity"
+  },
+  {
+    "id": "work_14",
+    "pattern": "someone scheduled a {duration} meeting for something that required a {much_shorter_duration} email and i am spiritually tired",
+    "reply_trigger": "meeting length injustice"
+  },
+  {
+    "id": "work_15",
+    "pattern": "my desk is {state_of_desk} and it reflects the state of my entire being",
+    "reply_trigger": "desk chaos self portrait"
+  },
+  {
+    "id": "social_01",
+    "pattern": "said i'd go to {event} and have been constructing my excuse to cancel since {time_agreed}",
+    "reply_trigger": "event cancellation planning"
+  },
+  {
+    "id": "social_02",
+    "pattern": "replied 'haha yeah' to a text i did not read and now i am {consequence}",
+    "reply_trigger": "unread text consequences"
+  },
+  {
+    "id": "social_03",
+    "pattern": "left someone on read for {time_period} and now it's too late to reply without a full explanation i don't have",
+    "reply_trigger": "late reply paralysis"
+  },
+  {
+    "id": "social_04",
+    "pattern": "saw someone i know in public and we both pretended we didn't. this is the social contract working perfectly",
+    "reply_trigger": "mutual avoidance comedy"
+  },
+  {
+    "id": "social_05",
+    "pattern": "made plans for {future_date} because future-me will definitely want to do {social_thing}. past-me was wrong again",
+    "reply_trigger": "future self betrayal"
+  },
+  {
+    "id": "social_06",
+    "pattern": "a group chat sent {number} messages while i was asleep and i have decided to leave them on unread until {future_event}",
+    "reply_trigger": "group chat overwhelm"
+  },
+  {
+    "id": "social_07",
+    "pattern": "the way my social battery drains during {low_effort_social_thing} as if it was a concert in 1987",
+    "reply_trigger": "introvert energy drain"
+  },
+  {
+    "id": "social_08",
+    "pattern": "someone asked 'what have you been up to' and i said '{vague_answer}' because the truth involved {embarrassing_reality}",
+    "reply_trigger": "social white lie"
+  },
+  {
+    "id": "social_09",
+    "pattern": "i've been 'meaning to text {person_type} back' for {embarrassing_length_of_time} and i am not a good person about it",
+    "reply_trigger": "text guilt confession"
+  },
+  {
+    "id": "social_10",
+    "pattern": "cancelled {social_plan} and then felt relief so deep it became its own kind of happiness. introvert math",
+    "reply_trigger": "cancel plan relief"
+  },
+  {
+    "id": "existential_01",
+    "pattern": "just realized {mildly_philosophical_observation} and now i need to sit with that for a while",
+    "reply_trigger": "minor existential crisis"
+  },
+  {
+    "id": "existential_02",
+    "pattern": "it's wild that we all just agreed to {arbitrary_social_norm} and nobody asked if that was okay",
+    "reply_trigger": "social contract questioning"
+  },
+  {
+    "id": "existential_03",
+    "pattern": "my villain origin story is {mundane_thing} being discontinued without warning",
+    "reply_trigger": "product discontinue grief"
+  },
+  {
+    "id": "existential_04",
+    "pattern": "i am one {small_inconvenience} away from moving somewhere remote and becoming {dramatic_alternative_identity}",
+    "reply_trigger": "escape fantasy humor"
+  },
+  {
+    "id": "existential_05",
+    "pattern": "the concept of {normal_thing} is something i need to sit with because it suddenly feels made up",
+    "reply_trigger": "mundane concept crisis"
+  },
+  {
+    "id": "existential_06",
+    "pattern": "sometimes i think about how {completely_normal_fact} and then have to close all my apps and go outside",
+    "reply_trigger": "reality check overwhelm"
+  },
+  {
+    "id": "existential_07",
+    "pattern": "we are all just {philosophical_observation_made_silly} and nobody is talking about it",
+    "reply_trigger": "absurdist solidarity"
+  },
+  {
+    "id": "existential_08",
+    "pattern": "the audacity of time to keep moving while i'm just here trying to figure out {small_unresolved_thing}",
+    "reply_trigger": "time passing complaint"
+  },
+  {
+    "id": "existential_09",
+    "pattern": "cannot believe i have to {regular_task} every single {time_interval} for the rest of my life. the routine is unhinged",
+    "reply_trigger": "repetition existential dread"
+  },
+  {
+    "id": "existential_10",
+    "pattern": "just stared at the word '{common_word}' for too long and now it doesn't look real anymore. this is fine",
+    "reply_trigger": "semantic satiation humor"
+  },
+  {
+    "id": "selfcare_01",
+    "pattern": "my self care routine is {chaotic_self_care_activity} and calling it healing",
+    "reply_trigger": "chaotic self care"
+  },
+  {
+    "id": "selfcare_02",
+    "pattern": "said 'this is good for me' about {thing_that_is_not_good_for_me} and i stand by that with zero evidence",
+    "reply_trigger": "self-justification humor"
+  },
+  {
+    "id": "selfcare_03",
+    "pattern": "the version of me that drinks {amount_of_water} of water daily is a character i play sometimes",
+    "reply_trigger": "hydration goal failure"
+  },
+  {
+    "id": "selfcare_04",
+    "pattern": "my wellness journey is: thought about {healthy_activity}, didn't do it, ordered {comfort_food}. repeat",
+    "reply_trigger": "wellness failure loop"
+  },
+  {
+    "id": "selfcare_05",
+    "pattern": "started {healthy_habit} for {embarrassingly_short_duration} and then retired. the effort was there",
+    "reply_trigger": "habit quit humor"
+  },
+  {
+    "id": "selfcare_06",
+    "pattern": "my version of 'getting my life together' is {small_easy_thing} that i have been doing for 3 days",
+    "reply_trigger": "low bar achievement"
+  },
+  {
+    "id": "selfcare_07",
+    "pattern": "drank one glass of water and felt like {disproportionately_positive_result}. hydration is a scam and also magic",
+    "reply_trigger": "hydration miracle comedy"
+  },
+  {
+    "id": "selfcare_08",
+    "pattern": "went outside for {short_time} and now feel qualified to give wellness advice. the fresh air changed me",
+    "reply_trigger": "outdoor healing parody"
+  },
+  {
+    "id": "selfcare_09",
+    "pattern": "my skin care routine has {number} steps and i do {far_fewer} of them with confidence",
+    "reply_trigger": "skincare step gap"
+  },
+  {
+    "id": "selfcare_10",
+    "pattern": "cleaned one corner of my room and now i'm telling everyone i deep cleaned. this is called perspective",
+    "reply_trigger": "cleaning exaggeration humor"
+  },
+  {
+    "id": "money_01",
+    "pattern": "the way {small_purchase} casually destroyed my budget while i was distracted by {other_small_purchase}",
+    "reply_trigger": "budget death by thousand cuts"
+  },
+  {
+    "id": "money_02",
+    "pattern": "checked my bank account and said 'okay' and closed the app. this is called emotional regulation",
+    "reply_trigger": "bank balance denial"
+  },
+  {
+    "id": "money_03",
+    "pattern": "justified buying {unnecessary_item} as 'an investment' and i deserve to be studied",
+    "reply_trigger": "purchase justification humor"
+  },
+  {
+    "id": "money_04",
+    "pattern": "i am one {minor_financial_inconvenience} away from rethinking my entire relationship with capitalism",
+    "reply_trigger": "economic frustration comedy"
+  },
+  {
+    "id": "money_05",
+    "pattern": "subscribed to {service} in {month} and have not used it since {same_month}. the billing cycle mocks me",
+    "reply_trigger": "unused subscription guilt"
+  },
+  {
+    "id": "money_06",
+    "pattern": "the {delivery_fee} cost more than the {item} i ordered and i clicked confirm anyway. i've accepted my fate",
+    "reply_trigger": "delivery fee acceptance"
+  },
+  {
+    "id": "money_07",
+    "pattern": "told myself i was 'just looking' at {website} and somehow ended up at checkout. physics is wild",
+    "reply_trigger": "accidental online shopping"
+  },
+  {
+    "id": "money_08",
+    "pattern": "my savings account and i have a complicated relationship built on broken promises and good intentions",
+    "reply_trigger": "savings failure humor"
+  },
+  {
+    "id": "money_09",
+    "pattern": "the way {price_of_thing} has changed since {year_ago} and my salary has not is an interesting art installation",
+    "reply_trigger": "inflation solidarity"
+  },
+  {
+    "id": "money_10",
+    "pattern": "forgot i had a {subscription} until it charged me and now i'm using it aggressively out of spite",
+    "reply_trigger": "revenge subscription use"
+  },
+  {
+    "id": "anxiety_01",
+    "pattern": "my resting state is 'vaguely worried about {unspecified_thing}' and it's really just my personality now",
+    "reply_trigger": "baseline anxiety identity"
+  },
+  {
+    "id": "anxiety_02",
+    "pattern": "sent a text and watched the typing bubble appear and disappear three times. i will not be the same",
+    "reply_trigger": "typing bubble trauma"
+  },
+  {
+    "id": "anxiety_03",
+    "pattern": "the silence after sending {important_message} is its own specific kind of suffering i would not wish on anyone",
+    "reply_trigger": "message silence dread"
+  },
+  {
+    "id": "anxiety_04",
+    "pattern": "my brain's current threat level is {unnecessary_threat} and i cannot explain why logically",
+    "reply_trigger": "irrational anxiety comedy"
+  },
+  {
+    "id": "anxiety_05",
+    "pattern": "convinced myself {completely_unlikely_scenario} was possible and spent {time} processing it. it was not possible",
+    "reply_trigger": "catastrophizing confession"
+  },
+  {
+    "id": "anxiety_06",
+    "pattern": "doing {normal_task} with the low-level panic of someone who is {unrelated_worry} simultaneously",
+    "reply_trigger": "multitask anxiety"
+  },
+  {
+    "id": "anxiety_07",
+    "pattern": "the way i replay {conversation_from_earlier} on loop to identify {imaginary_problem} i may have caused",
+    "reply_trigger": "conversation replay anxiety"
+  },
+  {
+    "id": "anxiety_08",
+    "pattern": "someone said '{ambiguous_phrase}' and i have assigned it {number} different meanings, all bad",
+    "reply_trigger": "text interpretation anxiety"
+  },
+  {
+    "id": "anxiety_09",
+    "pattern": "my body decided to simulate {physical_anxiety_symptom} while i was just trying to {completely_normal_thing}",
+    "reply_trigger": "physical anxiety surprise"
+  },
+  {
+    "id": "anxiety_10",
+    "pattern": "i am completely fine and also deeply unsettled by {minor_thing} and these two truths coexist",
+    "reply_trigger": "fine and not fine"
+  },
+  {
+    "id": "routine_01",
+    "pattern": "my routine has been {disrupted_by_minor_thing} and nothing will ever be the same again",
+    "reply_trigger": "routine disruption drama"
+  },
+  {
+    "id": "routine_02",
+    "pattern": "the {regular_shop} was out of {specific_item} and i am now shopping at {unfamiliar_place} like a person without a compass",
+    "reply_trigger": "shopping routine disruption"
+  },
+  {
+    "id": "routine_03",
+    "pattern": "someone changed where they put the {item} in {familiar_place} and i had a full moment of dissociation",
+    "reply_trigger": "object location change shock"
+  },
+  {
+    "id": "routine_04",
+    "pattern": "the barista spelled my name {wrong_spelling} and i said thank you and took it because conflict is not for me today",
+    "reply_trigger": "name misspelling acceptance"
+  },
+  {
+    "id": "routine_05",
+    "pattern": "my walk to {regular_destination} had {unexpected_obstacle} and it has genuinely thrown off the whole day",
+    "reply_trigger": "commute disruption drama"
+  },
+  {
+    "id": "routine_06",
+    "pattern": "they changed the layout of {familiar_website_or_app} and i am now a person who does not understand technology",
+    "reply_trigger": "UI change outrage"
+  },
+  {
+    "id": "routine_07",
+    "pattern": "my {usual_order} was wrong and i did not say anything. i am contemplating this cowardice",
+    "reply_trigger": "wrong order silence"
+  },
+  {
+    "id": "routine_08",
+    "pattern": "the {transport} arrived {minutes} early and i was not emotionally prepared for that level of punctuality",
+    "reply_trigger": "early arrival shock"
+  },
+  {
+    "id": "routine_09",
+    "pattern": "someone took my {regular_spot} at {place} and i am processing this as a personal attack",
+    "reply_trigger": "spot taken drama"
+  },
+  {
+    "id": "routine_10",
+    "pattern": "the {weather} was not what my app predicted and i feel deeply betrayed by software",
+    "reply_trigger": "weather app betrayal"
+  },
+  {
+    "id": "nostalgia_01",
+    "pattern": "just remembered {old_thing_from_internet} and spent {embarrassing_time} looking it up like i owed it something",
+    "reply_trigger": "internet nostalgia spiral"
+  },
+  {
+    "id": "nostalgia_02",
+    "pattern": "thought about {thing_from_childhood} and got emotional in a way that needs no further examination",
+    "reply_trigger": "childhood nostalgia hit"
+  },
+  {
+    "id": "nostalgia_03",
+    "pattern": "heard {old_song} and was immediately transported to {specific_memory} against my will. emotional hostage",
+    "reply_trigger": "song memory transport"
+  },
+  {
+    "id": "nostalgia_04",
+    "pattern": "someone mentioned {discontinued_thing} and i entered a grief i did not know i was still carrying",
+    "reply_trigger": "discontinued product grief"
+  },
+  {
+    "id": "nostalgia_05",
+    "pattern": "found an old photo where i looked inexplicably {adjective} and am now renegotiating my self-image",
+    "reply_trigger": "old photo crisis"
+  },
+  {
+    "id": "nostalgia_06",
+    "pattern": "came across {old_trend} and it genuinely feels like a different civilization lived through that",
+    "reply_trigger": "era distance humor"
+  },
+  {
+    "id": "nostalgia_07",
+    "pattern": "my {childhood_item} was everywhere and now it's 'vintage'. i am vintage. this is fine",
+    "reply_trigger": "personal age realization"
+  },
+  {
+    "id": "nostalgia_08",
+    "pattern": "rewatching {old_show} and my main takeaway is that i understood nothing at {younger_age}",
+    "reply_trigger": "media rewatch revelation"
+  },
+  {
+    "id": "nostalgia_09",
+    "pattern": "someone brought up {early_2000s_thing} and we collectively grieved and moved on in under 30 seconds. efficiency",
+    "reply_trigger": "collective internet grief"
+  },
+  {
+    "id": "nostalgia_10",
+    "pattern": "the {thing_that_used_to_be_cool} has come back and i have complicated feelings about it",
+    "reply_trigger": "trend return feelings"
+  },
+  {
+    "id": "weather_01",
+    "pattern": "the {season} had one job and it is currently not doing it",
+    "reply_trigger": "weather failure complaint"
+  },
+  {
+    "id": "weather_02",
+    "pattern": "i dressed for {wrong_weather} and the actual weather saw that and chose chaos",
+    "reply_trigger": "outfit weather mismatch"
+  },
+  {
+    "id": "weather_03",
+    "pattern": "it is {temperature} and i am {inappropriate_clothing} and i was not prepared for this character arc",
+    "reply_trigger": "temperature regret"
+  },
+  {
+    "id": "weather_04",
+    "pattern": "the rain started exactly when i was {midway_through_thing} with no shelter in sight. the universe is specific about its timing",
+    "reply_trigger": "rain timing perfect cruelty"
+  },
+  {
+    "id": "weather_05",
+    "pattern": "this {weather_event} showed up unannounced and is just living here now. we are coexisting",
+    "reply_trigger": "unexpected weather acceptance"
+  },
+  {
+    "id": "body_01",
+    "pattern": "my {body_part} made a new sound today and i have chosen to interpret that as a good sign",
+    "reply_trigger": "body noise denial"
+  },
+  {
+    "id": "body_02",
+    "pattern": "woke up with a mystery {pain_or_ache} and have spent the day self-diagnosing via {unreliable_source}",
+    "reply_trigger": "mystery pain self diagnosis"
+  },
+  {
+    "id": "body_03",
+    "pattern": "my {body_part} fell asleep while i was sitting normally and i panicked proportionally",
+    "reply_trigger": "limb asleep panic"
+  },
+  {
+    "id": "body_04",
+    "pattern": "sneezed {number} times in a row and my soul briefly left and came back a changed entity",
+    "reply_trigger": "sneezing spiritual event"
+  },
+  {
+    "id": "body_05",
+    "pattern": "yawned at {inopportune_moment} and my body just committed social violence with no warning",
+    "reply_trigger": "yawn timing disaster"
+  },
+  {
+    "id": "body_06",
+    "pattern": "my stomach made a noise during {quiet_situation} and i offered no explanation. we move on as a society",
+    "reply_trigger": "stomach noise public shame"
+  },
+  {
+    "id": "body_07",
+    "pattern": "blinked weird and now my {eye} is doing {strange_thing} and i need a moment to gather myself",
+    "reply_trigger": "eye twitch drama"
+  },
+  {
+    "id": "body_08",
+    "pattern": "my body decided to be {physical_sensation} today and it's really not the vibe for a {day_of_week}",
+    "reply_trigger": "body timing complaint"
+  },
+  {
+    "id": "body_09",
+    "pattern": "hiccupped in front of {social_context} and lost {percentage} of my dignity. the math is grim",
+    "reply_trigger": "hiccup social humiliation"
+  },
+  {
+    "id": "body_10",
+    "pattern": "my brain decided to forget the word '{common_word}' at a critical moment. thanks i hate it here",
+    "reply_trigger": "word loss embarrassment"
+  },
+  {
+    "id": "technology_01",
+    "pattern": "the {device} updated overnight and now everything is {wrong_and_confusing} and i am a stranger here",
+    "reply_trigger": "update disorientation"
+  },
+  {
+    "id": "technology_02",
+    "pattern": "the loading circle on {website} has been going for {time} and i cannot tell if it's working or we're both just waiting",
+    "reply_trigger": "loading screen patience"
+  },
+  {
+    "id": "technology_03",
+    "pattern": "the {tech_thing} asked me to update and i hit 'remind me later' for {number} weeks in a row. we have a system",
+    "reply_trigger": "update avoidance loop"
+  },
+  {
+    "id": "technology_04",
+    "pattern": "my laptop fan is making {dramatic_sound} and i'm choosing to believe it's enthusiasm, not distress",
+    "reply_trigger": "laptop fan denial"
+  },
+  {
+    "id": "technology_05",
+    "pattern": "the captcha made me identify {obscure_image_thing} fifteen times and i still feel unverified as a human being",
+    "reply_trigger": "captcha humanity challenge"
+  },
+  {
+    "id": "technology_06",
+    "pattern": "accidentally replied to a {message_type} instead of forwarding it and am now in {consequence} of my own making",
+    "reply_trigger": "message mistake consequence"
+  },
+  {
+    "id": "technology_07",
+    "pattern": "my computer said 'not enough storage' and gestured vaguely at my {massive_folder}. rude but fair",
+    "reply_trigger": "storage shame humor"
+  },
+  {
+    "id": "technology_08",
+    "pattern": "the bluetooth connected to {wrong_device} instead of {right_device} and i am having a philosophical moment",
+    "reply_trigger": "bluetooth betrayal"
+  },
+  {
+    "id": "technology_09",
+    "pattern": "my phone autocorrected {word} to {embarrassing_word} and it sent before i could stop it. character development",
+    "reply_trigger": "autocorrect sent chaos"
+  },
+  {
+    "id": "technology_10",
+    "pattern": "the wifi went down for {time} and i learned things about myself i was not ready to learn",
+    "reply_trigger": "wifi outage self revelation"
+  },
+  {
+    "id": "transport_01",
+    "pattern": "the {transport} was {minutes} late and i used that time to rethink {life_decision}",
+    "reply_trigger": "transport delay spiral"
+  },
+  {
+    "id": "transport_02",
+    "pattern": "someone sat in the {seat_description} on public transport and the whole journey was spiritually impacted",
+    "reply_trigger": "public transport tension"
+  },
+  {
+    "id": "transport_03",
+    "pattern": "missed my {stop} while staring at my phone and now i'm going somewhere new whether i want to or not",
+    "reply_trigger": "distracted transport miss"
+  },
+  {
+    "id": "transport_04",
+    "pattern": "the person next to me on {transport} was eating {strong_smelling_food} and i have grown as a person because of it",
+    "reply_trigger": "public transport food smell"
+  },
+  {
+    "id": "transport_05",
+    "pattern": "my {transport_app} said {time} and delivered {different_time} and the gap is where my faith in systems went",
+    "reply_trigger": "transport app inaccuracy"
+  },
+  {
+    "id": "comparison_01",
+    "pattern": "me vs the {opponent} i've invented in my head: {result}",
+    "reply_trigger": "imaginary competition humor"
+  },
+  {
+    "id": "comparison_02",
+    "pattern": "past me: 'future me will handle {problem}'. present me: staring at {same_problem}",
+    "reply_trigger": "past self blame"
+  },
+  {
+    "id": "comparison_03",
+    "pattern": "the version of me who thought {unrealistic_expectation} was possible at {age} is fictional and i respect the delusion",
+    "reply_trigger": "younger self delusion"
+  },
+  {
+    "id": "comparison_04",
+    "pattern": "2019 me vs 2025 me: the differences are {difference_one} and {difference_two}. growth is a spectrum",
+    "reply_trigger": "past vs present self"
+  },
+  {
+    "id": "comparison_05",
+    "pattern": "the me who made this plan and the me executing it are not the same person and never were",
+    "reply_trigger": "plan vs execution gap"
+  },
+  {
+    "id": "relationship_01",
+    "pattern": "my love language is {unexpected_love_language} and most people can't handle that level of {descriptor}",
+    "reply_trigger": "unusual love language"
+  },
+  {
+    "id": "relationship_02",
+    "pattern": "said '{emotionally_loaded_phrase}' and meant every word of it and then immediately left the room",
+    "reply_trigger": "emotional then exit"
+  },
+  {
+    "id": "relationship_03",
+    "pattern": "the way i express affection is {weird_affection_method} and it's not for everyone but it's consistent",
+    "reply_trigger": "unusual affection style"
+  },
+  {
+    "id": "relationship_04",
+    "pattern": "my attachment style is '{attachment_style_with_twist}' and the therapy bills reflect that",
+    "reply_trigger": "attachment style humor"
+  },
+  {
+    "id": "relationship_05",
+    "pattern": "told someone i 'didn't mind' when i very clearly minded. this is called {coping_mechanism} and i'm working on it",
+    "reply_trigger": "passive communication habit"
+  },
+  {
+    "id": "animal_01",
+    "pattern": "my {pet_type} looked at me with {expression} and i felt judged by something that {pet_absurdity}",
+    "reply_trigger": "pet judgment comedy"
+  },
+  {
+    "id": "animal_02",
+    "pattern": "my {pet} is doing {weird_pet_behavior} and i've chosen to interpret it as emotional support",
+    "reply_trigger": "pet behavior reinterpretation"
+  },
+  {
+    "id": "animal_03",
+    "pattern": "the {animal_i_saw} on my walk today had more confidence than i will ever possess. aspirational honestly",
+    "reply_trigger": "animal confidence inspiration"
+  },
+  {
+    "id": "animal_04",
+    "pattern": "my {pet} and i both pretended we didn't hear {thing} and we are an effective team",
+    "reply_trigger": "pet alliance comedy"
+  },
+  {
+    "id": "animal_05",
+    "pattern": "saw a {animal} doing {unexpected_thing} and could not explain why it nearly made me cry",
+    "reply_trigger": "unexpected animal emotion"
+  },
+  {
+    "id": "cultural_01",
+    "pattern": "the way {mundane_cultural_ritual} somehow became the most stressful part of {time_of_year}",
+    "reply_trigger": "cultural ritual stress"
+  },
+  {
+    "id": "cultural_02",
+    "pattern": "participating in {social_tradition} and feeling like an anthropologist observing my own life from outside it",
+    "reply_trigger": "observer in own life"
+  },
+  {
+    "id": "cultural_03",
+    "pattern": "someone brought up {controversial_trivial_topic} at {inappropriate_setting} and i watched the room change temperature",
+    "reply_trigger": "room temperature shift"
+  },
+  {
+    "id": "cultural_04",
+    "pattern": "the unspoken rules of {everyday_social_situation} are elaborate and i am still learning them in my {current_age}s",
+    "reply_trigger": "social rule still learning"
+  },
+  {
+    "id": "cultural_05",
+    "pattern": "asked 'how are you' and someone actually told me and i was not prepared for that level of honesty at {time_of_day}",
+    "reply_trigger": "how are you actually answered"
+  },
+  {
+    "id": "achievement_01",
+    "pattern": "did {small_task} and gave myself the internal equivalent of a standing ovation. the bar is a floor tile",
+    "reply_trigger": "tiny achievement celebration"
+  },
+  {
+    "id": "achievement_02",
+    "pattern": "successfully {minor_accomplishment} today and am now retiring for the rest of the {time_unit}",
+    "reply_trigger": "one task then done"
+  },
+  {
+    "id": "achievement_03",
+    "pattern": "i survived {mildly_difficult_thing} and it felt exactly as significant as it sounds",
+    "reply_trigger": "survival of minor thing"
+  },
+  {
+    "id": "achievement_04",
+    "pattern": "woke up and immediately did {morning_task} without being told by myself three times. personal record",
+    "reply_trigger": "self discipline shock"
+  },
+  {
+    "id": "achievement_05",
+    "pattern": "finished {task} before the deadline instead of during it and i don't know who i am anymore",
+    "reply_trigger": "early completion identity crisis"
+  },
+  {
+    "id": "observation_01",
+    "pattern": "genuinely unhinged how {completely_normal_thing} is just accepted as normal by everyone including me",
+    "reply_trigger": "normal thing called absurd"
+  },
+  {
+    "id": "observation_02",
+    "pattern": "someone decided {arbitrary_rule} and now we all just do it and nobody asks questions anymore",
+    "reply_trigger": "arbitrary rule acceptance"
+  },
+  {
+    "id": "observation_03",
+    "pattern": "the fact that we all just {daily_thing} every day and consider that a life is something i respect and fear",
+    "reply_trigger": "daily life absurdity"
+  },
+  {
+    "id": "observation_04",
+    "pattern": "who decided {random_convention} and why did we all agree to this without a meeting",
+    "reply_trigger": "convention origin questioning"
+  },
+  {
+    "id": "observation_05",
+    "pattern": "the universe aligned perfectly to make {mundane_coincidence} happen and i have assigned it enormous significance",
+    "reply_trigger": "mundane coincidence significance"
+  },
+  {
+    "id": "coping_01",
+    "pattern": "my coping mechanism is {questionable_coping_strategy} and it is not recommended by any professional i am aware of",
+    "reply_trigger": "questionable coping humor"
+  },
+  {
+    "id": "coping_02",
+    "pattern": "the number of tabs i have open is directly proportional to the number of things i'm not dealing with",
+    "reply_trigger": "browser tab avoidance"
+  },
+  {
+    "id": "coping_03",
+    "pattern": "eating {comfort_food} and watching {comfort_show} as a response to {manageable_problem}. proportionate reaction",
+    "reply_trigger": "comfort response overkill"
+  },
+  {
+    "id": "coping_04",
+    "pattern": "my emotional support {object} has been with me through {number} crises and i will not be explaining that",
+    "reply_trigger": "emotional support object bond"
+  },
+  {
+    "id": "coping_05",
+    "pattern": "cleaned something i didn't need to clean because i couldn't deal with {actual_problem}. productive avoidance",
+    "reply_trigger": "avoidance cleaning humor"
+  },
+  {
+    "id": "overthink_01",
+    "pattern": "spent {time} analyzing {small_interaction} that the other person has already forgotten. the imbalance is real",
+    "reply_trigger": "overthink interaction gap"
+  },
+  {
+    "id": "overthink_02",
+    "pattern": "i have prepared {number} different responses to a conversation that may never happen. just in case",
+    "reply_trigger": "hypothetical conversation prep"
+  },
+  {
+    "id": "overthink_03",
+    "pattern": "that {thing_said_5_years_ago} still lives in my head and visits at inconvenient times. it has tenure",
+    "reply_trigger": "old thing still haunts"
+  },
+  {
+    "id": "overthink_04",
+    "pattern": "thinking about how i said '{mildly_awkward_thing}' in {year} and the wound is still fresh",
+    "reply_trigger": "old awkward moment fresh"
+  },
+  {
+    "id": "overthink_05",
+    "pattern": "mapped out {number} possible outcomes of {low_stakes_decision} and am now more confused than before i started",
+    "reply_trigger": "over-analyzed decision"
+  },
+  {
+    "id": "overthink_06",
+    "pattern": "my brain offered me {intrusive_what_if} right before an important moment like it was doing me a favor",
+    "reply_trigger": "what-if brain betrayal"
+  },
+  {
+    "id": "overthink_07",
+    "pattern": "realized i've been mispronouncing {word} for {number} years and am now questioning everything i've ever said confidently",
+    "reply_trigger": "mispronunciation revelation"
+  },
+  {
+    "id": "overthink_08",
+    "pattern": "i don't have trust issues i just need {extremely_specific_condition} before i feel comfortable. totally normal",
+    "reply_trigger": "specific condition rationalized"
+  },
+  {
+    "id": "overthink_09",
+    "pattern": "spent the whole meeting wondering if i {minor_social_worry} and now have no idea what was decided",
+    "reply_trigger": "self-conscious meeting drift"
+  },
+  {
+    "id": "overthink_10",
+    "pattern": "my inner monologue during {simple_task} has more chapters than most novels",
+    "reply_trigger": "inner monologue excess"
+  },
+  {
+    "id": "generation_01",
+    "pattern": "the way {generational_thing} hits differently once you have to {adult_responsibility}",
+    "reply_trigger": "growing up shift"
+  },
+  {
+    "id": "generation_02",
+    "pattern": "found out {thing_i_thought_was_new} is actually from {earlier_decade} and my whole worldview has shifted",
+    "reply_trigger": "recency bias revelation"
+  },
+  {
+    "id": "generation_03",
+    "pattern": "explaining {internet_thing} to {person_who_wasn't_there} and realizing how unhinged it sounds out of context",
+    "reply_trigger": "internet explained to outsider"
+  },
+  {
+    "id": "generation_04",
+    "pattern": "the {year} version of me could not have predicted {current_mundane_reality} and honestly good for her",
+    "reply_trigger": "past self protection"
+  },
+  {
+    "id": "generation_05",
+    "pattern": "grew up being told {thing} would be important and the universe has yet to cash that check",
+    "reply_trigger": "childhood lesson unused"
+  },
+  {
+    "id": "humor_01",
+    "pattern": "my sense of humor is {niche_humor_style} and it has complicated my relationships in ways i won't detail here",
+    "reply_trigger": "niche humor self aware"
+  },
+  {
+    "id": "humor_02",
+    "pattern": "laughed at {thing} for {embarrassingly_long_time} and am still not fully recovered. the bit lives in me now",
+    "reply_trigger": "prolonged laugh relatable"
+  },
+  {
+    "id": "humor_03",
+    "pattern": "the joke i made {time_ago} at {situation} still makes me laugh alone in rooms and i am okay with that",
+    "reply_trigger": "self amused by own joke"
+  },
+  {
+    "id": "humor_04",
+    "pattern": "i have a {very_niche_reference} sense of humor and the market for it is me and {small_number} people online",
+    "reply_trigger": "niche audience self aware"
+  },
+  {
+    "id": "humor_05",
+    "pattern": "described {funny_thing} to someone who wasn't there and watched my credibility vanish in real time",
+    "reply_trigger": "you had to be there"
+  },
+  {
+    "id": "opinion_01",
+    "pattern": "controversial opinion: {mild_opinion_said_dramatically} and i will not be elaborating",
+    "reply_trigger": "mild take said boldly"
+  },
+  {
+    "id": "opinion_02",
+    "pattern": "i have opinions about {very_specific_niche_thing} that nobody asked for and yet here we are",
+    "reply_trigger": "unsolicited niche opinion"
+  },
+  {
+    "id": "opinion_03",
+    "pattern": "i believe {harmless_unconventional_belief} and i will go to my grave with this",
+    "reply_trigger": "hill to die on humor"
+  },
+  {
+    "id": "opinion_04",
+    "pattern": "the correct way to do {everyday_thing} is {my_way} and everything else is chaos and i will not debate this",
+    "reply_trigger": "strong everyday opinion"
+  },
+  {
+    "id": "opinion_05",
+    "pattern": "my unpopular opinion is that {actually_fairly_popular_take} and i'm prepared for the backlash",
+    "reply_trigger": "fake controversial take"
+  },
+  {
+    "id": "nature_01",
+    "pattern": "the {outdoor_thing} had the audacity to be {characteristic} today and i was not prepared for beauty to hit like that",
+    "reply_trigger": "unexpected nature moment"
+  },
+  {
+    "id": "nature_02",
+    "pattern": "went outside for {short_duration} and nature tried to {nature_event} me. staying inside was the right call",
+    "reply_trigger": "nature hostility humor"
+  },
+  {
+    "id": "nature_03",
+    "pattern": "a {insect_or_animal} entered my space without invitation and we had a {outcome} standoff",
+    "reply_trigger": "creature standoff comedy"
+  },
+  {
+    "id": "content_01",
+    "pattern": "watched {hours_of_content} of {content_type} and feel simultaneously informed and destroyed as a person",
+    "reply_trigger": "binge content aftermath"
+  },
+  {
+    "id": "content_02",
+    "pattern": "went down a {topic} rabbit hole at {late_time} and emerged {hours_later} as a different person with too many opinions",
+    "reply_trigger": "rabbit hole transformation"
+  },
+  {
+    "id": "content_03",
+    "pattern": "the algorithm sent me {weird_video_type} and now i cannot unsee it and it is the algorithm's fault and mine",
+    "reply_trigger": "algorithm weird send"
+  },
+  {
+    "id": "content_04",
+    "pattern": "i have been 'meaning to watch {show}' for {embarrassing_time} and at this point it is a lifestyle choice not a plan",
+    "reply_trigger": "watch list graveyard"
+  },
+  {
+    "id": "content_05",
+    "pattern": "finished a {long_show} and now have a {specific_void} shaped hole where my personality used to be",
+    "reply_trigger": "post-series void"
+  },
+  {
+    "id": "content_06",
+    "pattern": "rewatched {thing} and picked up on {detail} that went completely over my head {years_ago}. the layers",
+    "reply_trigger": "rewatch detail revelation"
+  },
+  {
+    "id": "content_07",
+    "pattern": "paused a show to google {detail} and came back {time_later} with too much information and a changed worldview",
+    "reply_trigger": "show google spiral"
+  },
+  {
+    "id": "content_08",
+    "pattern": "my 'watch later' list is where good intentions go to retire without being watched",
+    "reply_trigger": "watch later graveyard"
+  },
+  {
+    "id": "content_09",
+    "pattern": "started {show} on recommendation and am currently {episodes_deep} with no plan to sleep tonight",
+    "reply_trigger": "binge acceleration"
+  },
+  {
+    "id": "content_10",
+    "pattern": "the episode ended on {type_of_cliffhanger} and now my entire week is structured around the next one. a normal way to live",
+    "reply_trigger": "cliffhanger week hijack"
+  },
+  {
+    "id": "shopping_01",
+    "pattern": "put {item} in my cart {days} days ago and am still in a philosophical standoff with the checkout button",
+    "reply_trigger": "cart abandonment drama"
+  },
+  {
+    "id": "shopping_02",
+    "pattern": "bought {item} because it was on sale and now have {item} that i will never use and a slightly lighter wallet",
+    "reply_trigger": "sale logic failure"
+  },
+  {
+    "id": "shopping_03",
+    "pattern": "my package has been 'out for delivery' for {hours} and i have restructured my entire day around this ambiguity",
+    "reply_trigger": "delivery tracking obsession"
+  },
+  {
+    "id": "shopping_04",
+    "pattern": "the website had {fake_urgency_tactic} and i reacted exactly as they intended and am processing my gullibility",
+    "reply_trigger": "manipulation acknowledged"
+  },
+  {
+    "id": "shopping_05",
+    "pattern": "returned {item} after {time} and felt both freed and guilty. returns are emotionally complex",
+    "reply_trigger": "return emotional complexity"
+  },
+  {
+    "id": "weekend_01",
+    "pattern": "it is {day_of_weekend} and i have accomplished {embarrassingly_small_number} of the {larger_number} things i said i would do",
+    "reply_trigger": "weekend plan failure"
+  },
+  {
+    "id": "weekend_02",
+    "pattern": "my 'productive weekend' plan vs my actual weekend: {visual_contrast}. we don't talk about it",
+    "reply_trigger": "weekend productivity gap"
+  },
+  {
+    "id": "weekend_03",
+    "pattern": "sunday evening hit and suddenly i remember {unresolved_thing} that {monday_consequence} and the spiral begins",
+    "reply_trigger": "sunday dread activation"
+  },
+  {
+    "id": "weekend_04",
+    "pattern": "the weekend ended and i feel {zero_rest_achieved} which is statistically interesting because i slept {a_lot}",
+    "reply_trigger": "rest achieved vs felt gap"
+  },
+  {
+    "id": "monday_01",
+    "pattern": "monday arrived with {unwelcome_thing} and i was not consulted in the planning of this week",
+    "reply_trigger": "monday uninvited"
+  },
+  {
+    "id": "monday_02",
+    "pattern": "the monday feeling started at {time_on_sunday} and is currently {intensity_level} by {monday_morning_time}",
+    "reply_trigger": "monday dread timeline"
+  },
+  {
+    "id": "monday_03",
+    "pattern": "i cannot believe we designed a society where {monday_grievance} is just expected. the audacity of the construct",
+    "reply_trigger": "monday structure critique"
+  },
+  {
+    "id": "friday_01",
+    "pattern": "it's friday and i have {energy_level} to show for this week. filing that under 'character building'",
+    "reply_trigger": "friday exhausted pride"
+  },
+  {
+    "id": "friday_02",
+    "pattern": "friday me makes plans that {saturday_me} will abandon with no regrets. the cycle is the point",
+    "reply_trigger": "friday to saturday betrayal"
+  },
+  {
+    "id": "knowledge_01",
+    "pattern": "just learned that {surprising_fact} and am rearranging some things internally",
+    "reply_trigger": "fact reshuffles worldview"
+  },
+  {
+    "id": "knowledge_02",
+    "pattern": "confidently believed {wrong_thing} for {embarrassing_number} years and nobody corrected me until today",
+    "reply_trigger": "long held misconception"
+  },
+  {
+    "id": "knowledge_03",
+    "pattern": "found out how {everyday_thing} is actually made and am choosing to continue consuming it anyway. this is called commitment",
+    "reply_trigger": "ignorance preserved"
+  },
+  {
+    "id": "knowledge_04",
+    "pattern": "the {fact} is technically true but emotionally irresponsible to know",
+    "reply_trigger": "emotionally irresponsible fact"
+  },
+  {
+    "id": "knowledge_05",
+    "pattern": "learned a new word, used it {wrong_way}, and have now been corrected by the internet. growing pains",
+    "reply_trigger": "word misuse caught"
+  },
+  {
+    "id": "identity_01",
+    "pattern": "my personality is {niche_interest} and {other_niche_interest} with {third_niche_thing} in the background managing everything",
+    "reply_trigger": "personality triple interest"
+  },
+  {
+    "id": "identity_02",
+    "pattern": "the type of person i am online vs in person is a study in {two_contrasting_adjectives}",
+    "reply_trigger": "online vs irl contrast"
+  },
+  {
+    "id": "identity_03",
+    "pattern": "i contain multitudes, specifically the multitude that {contradictory_trait_one} and also {contradictory_trait_two}",
+    "reply_trigger": "contradiction self portrait"
+  },
+  {
+    "id": "identity_04",
+    "pattern": "my personality before {time_of_day} is {one_type} and after is {other_type} and they've never met",
+    "reply_trigger": "time split personality"
+  },
+  {
+    "id": "identity_05",
+    "pattern": "the version of me that exists at {specific_time_or_context} is the most {adjective} and i cannot explain it scientifically",
+    "reply_trigger": "context-specific self"
+  },
+  {
+    "id": "philosophy_01",
+    "pattern": "if {overthought_scenario} then technically {weird_logical_conclusion} and i dare someone to argue with me",
+    "reply_trigger": "weird logic challenge"
+  },
+  {
+    "id": "philosophy_02",
+    "pattern": "what if {normal_thing} is actually {alternative_interpretation} and we've all just been going along with it",
+    "reply_trigger": "reframe normal absurdly"
+  },
+  {
+    "id": "philosophy_03",
+    "pattern": "the real {desirable_thing} was the {unrelated_thing} we {did_instead} along the way",
+    "reply_trigger": "journey reframe humor"
+  },
+  {
+    "id": "philosophy_04",
+    "pattern": "i've decided {arbitrary_decision} is my philosophy and will be living accordingly starting {vague_time}",
+    "reply_trigger": "random adopted philosophy"
+  },
+  {
+    "id": "philosophy_05",
+    "pattern": "at some point today i thought 'why does {completely_ordinary_thing} even exist' and had no good answer",
+    "reply_trigger": "ordinary thing questioned"
+  },
+  {
+    "id": "communication_01",
+    "pattern": "said the wrong {person's_name} in a {high_stakes_context} and my body immediately tried to leave the earth's atmosphere",
+    "reply_trigger": "name slip mortification"
+  },
+  {
+    "id": "communication_02",
+    "pattern": "meant to say {intended_thing}, said {actual_thing_said}, and am now watching both of us process that",
+    "reply_trigger": "wrong word spoken"
+  },
+  {
+    "id": "communication_03",
+    "pattern": "the way i project-manage a simple {text_or_conversation} to account for every possible misunderstanding is genuinely exhausting",
+    "reply_trigger": "over-managed communication"
+  },
+  {
+    "id": "communication_04",
+    "pattern": "wrote {long_message}, deleted it, sent '{short_replacement}' instead. the full version lives only in my notes app",
+    "reply_trigger": "deleted message graveyard"
+  },
+  {
+    "id": "communication_05",
+    "pattern": "my texting style is {description} and it has led to {number} misunderstandings that i am still untangling",
+    "reply_trigger": "texting style consequences"
+  },
+  {
+    "id": "ambition_01",
+    "pattern": "my 5 year plan is {vague_aspiration} and my 5 day plan is {extremely_small_task} and both feel equally achievable",
+    "reply_trigger": "scale mismatch humor"
+  },
+  {
+    "id": "ambition_02",
+    "pattern": "told myself i'd do {big_goal} this year and am currently {unrelated_low_effort_activity}. the year is {current_month}",
+    "reply_trigger": "yearly goal status report"
+  },
+  {
+    "id": "ambition_03",
+    "pattern": "my potential is {adjective} and my execution is {contrasting_adjective} and the gap between them has its own zip code",
+    "reply_trigger": "potential vs execution gap"
+  },
+  {
+    "id": "ambition_04",
+    "pattern": "started a {project_type} in {month} and am visiting it now {later_month} like a distant relative. hi",
+    "reply_trigger": "abandoned project reunion"
+  },
+  {
+    "id": "ambition_05",
+    "pattern": "the {task} i put off for {long_time} took {short_time} to complete and i am not discussing what that implies about me",
+    "reply_trigger": "procrastination math"
+  },
+  {
+    "id": "comparison_06",
+    "pattern": "the person i was before {life_event} is unrecognizable to the person i am now who {same_bad_habit}",
+    "reply_trigger": "growth illusion humor"
+  },
+  {
+    "id": "comparison_07",
+    "pattern": "ten years ago me and current me would have {reaction} to each other's choices and that's healthy i think",
+    "reply_trigger": "past future self meeting"
+  },
+  {
+    "id": "comparison_08",
+    "pattern": "the {older_version_of_me} knew something the {current_version_of_me} has clearly forgotten. what was it",
+    "reply_trigger": "lost past wisdom"
+  },
+  {
+    "id": "specific_01",
+    "pattern": "the very specific pain of {niche_relatable_experience} and the silence after",
+    "reply_trigger": "niche specific solidarity"
+  },
+  {
+    "id": "specific_02",
+    "pattern": "nothing prepares you for the {emotion} of {very_specific_moment}",
+    "reply_trigger": "specific moment emotion"
+  },
+  {
+    "id": "specific_03",
+    "pattern": "the {specific_tiny_victory} is underrated and i will be celebrating it accordingly",
+    "reply_trigger": "tiny victory recognition"
+  },
+  {
+    "id": "specific_04",
+    "pattern": "the specific exhaustion of {niche_draining_thing} that nobody talks about enough",
+    "reply_trigger": "unspoken specific drain"
+  },
+  {
+    "id": "specific_05",
+    "pattern": "there's a word for the feeling of {niche_emotion} and i hope to learn it in this lifetime",
+    "reply_trigger": "unnamed emotion search"
+  },
+  {
+    "id": "validation_01",
+    "pattern": "i did {thing} and did not receive any external acknowledgement and am having to generate my own. this is hard",
+    "reply_trigger": "self-validation difficulty"
+  },
+  {
+    "id": "validation_02",
+    "pattern": "the post i thought would do well did {low_number} impressions. the one i posted at 2am did {high_number}. i give up understanding this",
+    "reply_trigger": "post performance irony"
+  },
+  {
+    "id": "validation_03",
+    "pattern": "logged off to protect my peace and immediately needed to check if anyone had {engagement_type} my post. the peace was brief",
+    "reply_trigger": "log off then check"
+  },
+  {
+    "id": "validation_04",
+    "pattern": "accidentally made something good and cannot tell anyone without it sounding like bragging so i'm telling the timeline",
+    "reply_trigger": "humble achievement share"
+  },
+  {
+    "id": "era_01",
+    "pattern": "entering my {ridiculous_era} era where i {very_specific_behavior} and call it growth",
+    "reply_trigger": "new era declaration"
+  },
+  {
+    "id": "era_02",
+    "pattern": "my current era is best described as {three_contradictory_adjectives}. it's working somehow",
+    "reply_trigger": "current era summary"
+  },
+  {
+    "id": "era_03",
+    "pattern": "in my {season_or_time_period} era which means i {specific_seasonal_behavior} more than is probably necessary",
+    "reply_trigger": "seasonal era identity"
+  },
+  {
+    "id": "era_04",
+    "pattern": "my villain era lasted {short_time} before i apologized to {unexpected_recipient} and went home",
+    "reply_trigger": "villain era failure"
+  },
+  {
+    "id": "era_05",
+    "pattern": "currently in my 'i have {number} things on my plate' era and eating none of them. the plates are decorative",
+    "reply_trigger": "overwhelm era metaphor"
+  },
+  {
+    "id": "hot_take_01",
+    "pattern": "the people who {controversial_minor_behavior} are actually right and i will stand by this at great personal cost",
+    "reply_trigger": "minor behavior defense"
+  },
+  {
+    "id": "hot_take_02",
+    "pattern": "{common_opinion} is a consensus i have never once agreed with and i'm finally saying it",
+    "reply_trigger": "mainstream opinion rejection"
+  },
+  {
+    "id": "hot_take_03",
+    "pattern": "the most {adjective} thing someone can do is {unexpectedly_mundane_thing} without apologizing",
+    "reply_trigger": "mundane confidence praised"
+  },
+  {
+    "id": "hot_take_04",
+    "pattern": "{widely_loved_thing} is fine. it's fine. it's just fine. and some of us are okay with fine",
+    "reply_trigger": "overhyped thing deflated"
+  },
+  {
+    "id": "hot_take_05",
+    "pattern": "my take on {topic} is unpopular but it's mine and i've thought about it for {short_time} which is enough",
+    "reply_trigger": "quick take confidence"
+  },
+  {
+    "id": "confession_01",
+    "pattern": "i have never {commonly_done_thing} and at this point it would be weird to start. solidarity with my fellow {abstainers}",
+    "reply_trigger": "never done common thing"
+  },
+  {
+    "id": "confession_02",
+    "pattern": "confessing that i {slightly_embarrassing_admission} because it's been living in me too long and the timeline deserves to know",
+    "reply_trigger": "minor confession release"
+  },
+  {
+    "id": "confession_03",
+    "pattern": "i fake {common_knowledge} every time it comes up and have been for {number} years. the performance has been flawless",
+    "reply_trigger": "faked knowledge confession"
+  },
+  {
+    "id": "confession_04",
+    "pattern": "have been {doing_thing_wrong} for {embarrassing_time_period} and only found out today. genuinely thought i was nailing it",
+    "reply_trigger": "wrong way discovery"
+  },
+  {
+    "id": "confession_05",
+    "pattern": "the truth is i have {secret_skill_or_trait} and it doesn't match my {public_persona} at all. plot twist",
+    "reply_trigger": "hidden trait reveal"
+  },
+  {
+    "id": "spiral_01",
+    "pattern": "started thinking about {topic} and now i'm somehow at {unrelated_dark_conclusion} and it happened so fast",
+    "reply_trigger": "thought spiral velocity"
+  },
+  {
+    "id": "spiral_02",
+    "pattern": "my mind went from '{reasonable_thought}' to '{unhinged_conclusion}' in under {short_time}. the commute was wild",
+    "reply_trigger": "thought jump distance"
+  },
+  {
+    "id": "spiral_03",
+    "pattern": "triggered a {topic} spiral at {time} and am only now surfacing. the depth was considerable",
+    "reply_trigger": "topic spiral depth"
+  },
+  {
+    "id": "spiral_04",
+    "pattern": "googled one thing and {hours_later} am reading about {completely_unrelated_topic} with no memory of the path. hyperlinks are a drug",
+    "reply_trigger": "google spiral no memory"
+  },
+  {
+    "id": "spiral_05",
+    "pattern": "the thought that started as '{innocent_thought}' has evolved into '{full_existential_thing}' and it's only {time_of_day}",
+    "reply_trigger": "thought escalation timeline"
+  },
+  {
+    "id": "energy_01",
+    "pattern": "my energy this {time_unit} has been {inadequate_description} and i'm honestly impressed it's been enough to {basic_thing}",
+    "reply_trigger": "low energy survival"
+  },
+  {
+    "id": "energy_02",
+    "pattern": "woke up choosing violence then remembered i don't have the energy for that so settled for mild passive aggression",
+    "reply_trigger": "violence downgraded passivity"
+  },
+  {
+    "id": "energy_03",
+    "pattern": "gave {thing_requiring_effort} my full {percentage_of_energy}% and it still required more. renegotiating with my nervous system",
+    "reply_trigger": "effort miscalculation"
+  },
+  {
+    "id": "energy_04",
+    "pattern": "my social battery is at {low_percentage}% and someone has just invited me to {social_situation}. calculating the cost",
+    "reply_trigger": "social battery warning"
+  },
+  {
+    "id": "energy_05",
+    "pattern": "peaked at {time_of_day} and it's only {later_time_of_day}. the afternoon will be a performance",
+    "reply_trigger": "early peak late drag"
+  },
+  {
+    "id": "space_01",
+    "pattern": "my {living_space_area} is in a state that says '{what_it_says_about_me}' and i am choosing not to engage with that message",
+    "reply_trigger": "space as self portrait"
+  },
+  {
+    "id": "space_02",
+    "pattern": "cleaned my {space} and now can't find {important_item} because i cleaned it. order is chaos",
+    "reply_trigger": "cleaning backfire"
+  },
+  {
+    "id": "space_03",
+    "pattern": "the {corner_of_room} has been 'temporary storage' for {number} months and is now load-bearing infrastructure",
+    "reply_trigger": "pile becomes permanent"
+  },
+  {
+    "id": "space_04",
+    "pattern": "organized my {space} and spent {time} looking for {item} that was easier to find before i organized",
+    "reply_trigger": "organized chaos preferred"
+  },
+  {
+    "id": "contrast_01",
+    "pattern": "me online: {online_persona}. me irl: {very_different_irl_persona}. the vibes are theoretical",
+    "reply_trigger": "online vs irl persona"
+  },
+  {
+    "id": "contrast_02",
+    "pattern": "my vision board vs my current situation: {one_thing_in_common} and that's enough honestly",
+    "reply_trigger": "vision board reality gap"
+  },
+  {
+    "id": "contrast_03",
+    "pattern": "who i thought i'd be at {age} and who i actually am at {same_age}: {observation}",
+    "reply_trigger": "age expectation vs reality"
+  },
+  {
+    "id": "contrast_04",
+    "pattern": "what i ordered vs what arrived: a meditation on expectation and reality featuring {product_name}",
+    "reply_trigger": "expectation vs delivery gap"
+  },
+  {
+    "id": "contrast_05",
+    "pattern": "my plan: {organized_thing}. reality: {chaotic_equivalent}. the gap is my personality",
+    "reply_trigger": "plan reality personality gap"
+  },
+  {
+    "id": "sensory_01",
+    "pattern": "the sound of {everyday_sound} at {wrong_time_of_day} is genuinely a form of mild psychological disturbance",
+    "reply_trigger": "wrong time sound effect"
+  },
+  {
+    "id": "sensory_02",
+    "pattern": "smelled {scent} and was transported to {specific_memory_place} for exactly three seconds and then back. that was free therapy",
+    "reply_trigger": "scent memory transport"
+  },
+  {
+    "id": "sensory_03",
+    "pattern": "the texture of {everyday_texture} at the wrong moment is something i cannot explain to those who don't understand. they're lucky",
+    "reply_trigger": "texture sensitivity solidarity"
+  },
+  {
+    "id": "sensory_04",
+    "pattern": "hearing {sound} unexpectedly is my body's personal villain origin story trigger and i've made peace with that",
+    "reply_trigger": "sound trigger origin"
+  },
+  {
+    "id": "power_01",
+    "pattern": "said 'no' to something this week and felt {emotion_combination} about it for {duration}. boundary work is complicated",
+    "reply_trigger": "boundary setting aftermath"
+  },
+  {
+    "id": "power_02",
+    "pattern": "someone tried to {minor_power_play} and i {response} and now there's a vibe in the room that has a ZIP code",
+    "reply_trigger": "minor power play response"
+  },
+  {
+    "id": "power_03",
+    "pattern": "the confidence it takes to {bold_ordinary_move} without announcing it is something i am studying in the wild",
+    "reply_trigger": "quiet confidence study"
+  },
+  {
+    "id": "power_04",
+    "pattern": "finally did {thing_i_was_avoiding} and the world did not end, which is both a relief and a mildly annoying lesson",
+    "reply_trigger": "avoidance object lesson"
+  },
+  {
+    "id": "power_05",
+    "pattern": "chose myself today by {what_choosing_self_meant} and it was {adjective} and i recommend it with reservations",
+    "reply_trigger": "self choice mixed review"
+  },
+  {
+    "id": "time_01",
+    "pattern": "cannot believe it has been {time_period} since {event}. the calendar is a bold fiction",
+    "reply_trigger": "time passage disbelief"
+  },
+  {
+    "id": "time_02",
+    "pattern": "time moved {fast_or_slow} during {activity} and fast during {preferred_activity} and i have thoughts about this asymmetry",
+    "reply_trigger": "time perception asymmetry"
+  },
+  {
+    "id": "time_03",
+    "pattern": "the {day_or_week} was both the longest and the shortest {time_unit} of my life and those are not mutually exclusive",
+    "reply_trigger": "paradox time experience"
+  },
+  {
+    "id": "time_04",
+    "pattern": "it has been {amount_of_time} and i still think about {thing} at least {number} times a week. it has tenure",
+    "reply_trigger": "persistent thought tenure"
+  },
+  {
+    "id": "time_05",
+    "pattern": "started {thing} when {time_reference} and am still {same_thing}. i've been consistent about this at least",
+    "reply_trigger": "consistency in wrong thing"
+  },
+  {
+    "id": "context_01",
+    "pattern": "out of context that looked {misleading_description} but in full context it was also {misleading_description} so",
+    "reply_trigger": "context doesn't help"
+  },
+  {
+    "id": "context_02",
+    "pattern": "the {phrase} that sounds {interpretation_one} but means {entirely_different_thing} in context is doing a lot of work",
+    "reply_trigger": "phrase dual meaning"
+  },
+  {
+    "id": "context_03",
+    "pattern": "tried to explain {in_joke} and watched the humor leave the room like steam from a cup. the bit was real to me",
+    "reply_trigger": "joke explanation failure"
+  },
+  {
+    "id": "trust_01",
+    "pattern": "trusting the process when the process is {absurd_or_chaotic} requires a specific kind of faith i'm still developing",
+    "reply_trigger": "trust chaotic process"
+  },
+  {
+    "id": "trust_02",
+    "pattern": "believing {optimistic_thing} after {evidence_to_contrary} is just my personality and some might call it {label}",
+    "reply_trigger": "optimism despite evidence"
+  },
+  {
+    "id": "trust_03",
+    "pattern": "the universe keeps sending me {repeating_pattern} and i keep responding with {same_response}. definition of something",
+    "reply_trigger": "repeating pattern irony"
+  },
+  {
+    "id": "perception_01",
+    "pattern": "how i think i look when i {activity} vs how i actually look: a tragedy in {number} acts",
+    "reply_trigger": "self image reality gap"
+  },
+  {
+    "id": "perception_02",
+    "pattern": "the energy i think i give off vs the energy i actually give off is a documentary i'm not ready to watch",
+    "reply_trigger": "energy perception gap"
+  },
+  {
+    "id": "perception_03",
+    "pattern": "the photo i thought looked good vs the photo other people took of me: different continents, spiritually",
+    "reply_trigger": "photo self vs candid"
+  },
+  {
+    "id": "perception_04",
+    "pattern": "i genuinely believed i was {self_assessment} until {incident} showed me i was {reality}. recalibrating",
+    "reply_trigger": "self assessment corrected"
+  },
+  {
+    "id": "perception_05",
+    "pattern": "the face i make when i think i'm listening patiently is apparently '{what_face_actually_looks_like}' and i apologize",
+    "reply_trigger": "resting face revelation"
+  },
+  {
+    "id": "irony_01",
+    "pattern": "the {thing_i_was_trying_to_avoid} showed up anyway because that's just how {category_of_thing} works",
+    "reply_trigger": "avoidance backfire irony"
+  },
+  {
+    "id": "irony_02",
+    "pattern": "prepared for {scenario_a} and got {scenario_b} and honestly the universe has a bit",
+    "reply_trigger": "preparation wrong outcome"
+  },
+  {
+    "id": "irony_03",
+    "pattern": "the lesson i needed to learn chose {ironic_moment} to arrive and i am not surprised but i am tired",
+    "reply_trigger": "lesson untimely arrival"
+  },
+  {
+    "id": "irony_04",
+    "pattern": "tried to fix {small_problem} and created {slightly_larger_problem}. this is called initiative",
+    "reply_trigger": "fix creates problem humor"
+  },
+  {
+    "id": "irony_05",
+    "pattern": "the {thing_i_didn't_want} turned out to be {positive_outcome} and the {thing_i_did_want} was {negative_outcome}. fine",
+    "reply_trigger": "want vs result inversion"
+  },
+  {
+    "id": "friendship_01",
+    "pattern": "sent a meme to {friend_type} at {time} because that is how i communicate {emotion} and they understood immediately",
+    "reply_trigger": "meme as emotional language"
+  },
+  {
+    "id": "friendship_02",
+    "pattern": "my closest friendships are held together by {shared_specific_interest} and {mutual_coping_mechanism} and i wouldn't change it",
+    "reply_trigger": "friendship glue specifics"
+  },
+  {
+    "id": "friendship_03",
+    "pattern": "the person who gets my {niche_reference} immediately is someone i have decided to keep forever",
+    "reply_trigger": "niche reference friendship test"
+  },
+  {
+    "id": "friendship_04",
+    "pattern": "texted {person} '{random_thing}' with no context and they replied '{perfect_response}' and that's the friendship",
+    "reply_trigger": "no context text solidarity"
+  },
+  {
+    "id": "friendship_05",
+    "pattern": "my friend did {thing} and i said '{supportive_but_honest_comment}' and that's why we work",
+    "reply_trigger": "honest friend dynamic"
+  },
+  {
+    "id": "urban_01",
+    "pattern": "the city did {city_specific_thing} today and i have decided it's personal",
+    "reply_trigger": "city personal offense"
+  },
+  {
+    "id": "urban_02",
+    "pattern": "the commute handed me {random_urban_experience} and i had to just absorb it like a person who lives here",
+    "reply_trigger": "commute strange encounter"
+  },
+  {
+    "id": "urban_03",
+    "pattern": "overheard '{random_out_of_context_conversation}' on the {transit_type} and am still thinking about it {time_later}",
+    "reply_trigger": "overheard conversation lingers"
+  },
+  {
+    "id": "urban_04",
+    "pattern": "the person who {public_behavior} in {public_space} and i made eye contact and reached a silent agreement. we move",
+    "reply_trigger": "silent public agreement"
+  },
+  {
+    "id": "urban_05",
+    "pattern": "my neighborhood has added {new_thing} and i feel {conflicted_emotion} about it in ways that say something about me",
+    "reply_trigger": "neighborhood change feelings"
+  },
+  {
+    "id": "meta_01",
+    "pattern": "wrote a post about {topic}, deleted it, wrote it again slightly different, deleted it, and now you get this instead",
+    "reply_trigger": "post drafting confession"
+  },
+  {
+    "id": "meta_02",
+    "pattern": "the version of this post that exists in my drafts is {better_or_worse} and will never see daylight",
+    "reply_trigger": "draft graveyard reveal"
+  },
+  {
+    "id": "meta_03",
+    "pattern": "thought of a really good {post_type} at {inconvenient_time} and by the time i could write it down it was {state_of_thought}",
+    "reply_trigger": "lost thought grief"
+  },
+  {
+    "id": "meta_04",
+    "pattern": "this post would have been {length_or_quality} if i hadn't edited it {number} times. you're welcome. i think",
+    "reply_trigger": "editing self reflection"
+  },
+  {
+    "id": "meta_05",
+    "pattern": "posted this and immediately thought of a better version. the timeline gets the b-side",
+    "reply_trigger": "post regret instant"
+  },
+  {
+    "id": "seasons_01",
+    "pattern": "the first day of {season} feeling like you're supposed to have {seasonal_personality} and i'm still loading",
+    "reply_trigger": "seasonal personality pressure"
+  },
+  {
+    "id": "seasons_02",
+    "pattern": "{season} arrived and immediately made {seasonal_demand} and i wasn't emotionally ready for the assignment",
+    "reply_trigger": "seasonal demand unready"
+  },
+  {
+    "id": "seasons_03",
+    "pattern": "every {season} i think this will be my {season_adjective} season and every {season} the evidence suggests otherwise",
+    "reply_trigger": "seasonal delusion repeat"
+  },
+  {
+    "id": "aging_01",
+    "pattern": "my body gave me {new_physical_experience} this week that didn't exist last year and we're calling that character development",
+    "reply_trigger": "new body quirk aging"
+  },
+  {
+    "id": "aging_02",
+    "pattern": "woke up with a {unexplained_pain} for no reason and have accepted this as part of the current era",
+    "reply_trigger": "unexplained pain acceptance"
+  },
+  {
+    "id": "aging_03",
+    "pattern": "recovering from {mild_thing} is taking {embarrassingly_long_time} and i am renegotiating my understanding of my own {body_part}",
+    "reply_trigger": "slow recovery shock"
+  },
+  {
+    "id": "aging_04",
+    "pattern": "the {thing_i_used_to_do_easily} requires {new_amount_of_preparation} now and the math is not mathing in a direction i enjoy",
+    "reply_trigger": "effort increase aging"
+  },
+  {
+    "id": "aging_05",
+    "pattern": "said 'i'm too old for {thing}' about {thing} that has no age requirement and then did it anyway. contradictions",
+    "reply_trigger": "too old contradiction"
+  },
+  {
+    "id": "clarity_01",
+    "pattern": "had a moment of genuine clarity about {topic} and then {distraction} happened and now it's gone. it was good while it lasted",
+    "reply_trigger": "clarity lost to distraction"
+  },
+  {
+    "id": "clarity_02",
+    "pattern": "figured out {personal_thing} in the shower and immediately forgot it by the time i was dressed. shower thoughts are uncollectable",
+    "reply_trigger": "shower epiphany lost"
+  },
+  {
+    "id": "clarity_03",
+    "pattern": "understood {complicated_thing} completely for {short_time} and then it became complicated again. the window was real",
+    "reply_trigger": "temporary understanding window"
+  },
+  {
+    "id": "misc_01",
+    "pattern": "the {specific_object} is giving {unexpected_vibe} energy and i am not sure how to feel about that",
+    "reply_trigger": "object unexpected energy"
+  },
+  {
+    "id": "misc_02",
+    "pattern": "my notes app is {description_of_notes_app} and a forensic examination of who i was at {time} versus now",
+    "reply_trigger": "notes app as time capsule"
+  },
+  {
+    "id": "misc_03",
+    "pattern": "the {thing_in_background} of my video call was {embarrassing_thing} and one person definitely saw it",
+    "reply_trigger": "background reveal video call"
+  },
+  {
+    "id": "misc_04",
+    "pattern": "spoke {language} at {competency_level} competency and {consequence} and i am owning the outcome entirely",
+    "reply_trigger": "language attempt consequence"
+  },
+  {
+    "id": "misc_05",
+    "pattern": "made a decision at {speed} speed and it was {result}. acting fast: a review",
+    "reply_trigger": "fast decision result"
+  },
+  {
+    "id": "misc_06",
+    "pattern": "the {day_of_week} version of me has never once prepared adequately for the {next_day_of_week} version",
+    "reply_trigger": "day version gap"
+  },
+  {
+    "id": "misc_07",
+    "pattern": "have been {doing_thing} in the wrong way for {time_period} and feel simultaneously embarrassed and strangely proud",
+    "reply_trigger": "wrong way long time"
+  },
+  {
+    "id": "misc_08",
+    "pattern": "the {online_community_or_corner_of_internet} found me and now my algorithm is {permanent_consequence}",
+    "reply_trigger": "algorithm permanently altered"
+  },
+  {
+    "id": "misc_09",
+    "pattern": "my {feature_of_personality} showed up uninvited during {inappropriate_moment} and i could not contain it in time",
+    "reply_trigger": "personality timing failure"
+  },
+  {
+    "id": "misc_10",
+    "pattern": "started {project} and have {number} different versions saved and zero finished ones. progress is subjective",
+    "reply_trigger": "versions not finished"
+  },
+  {
+    "id": "misc_11",
+    "pattern": "the {thing_i_said_confidently} turned out to be {wrong} and i've been replaying my confidence in slow motion since",
+    "reply_trigger": "confident wrong statement replay"
+  },
+  {
+    "id": "misc_12",
+    "pattern": "put {effort_level} into {task} and received {disproportionate_result} in return and the universe and i are having a conversation",
+    "reply_trigger": "effort vs result imbalance"
+  },
+  {
+    "id": "misc_13",
+    "pattern": "the person in my {situation} who always does {specific_thing} has done {same_specific_thing} again. clockwork",
+    "reply_trigger": "predictable person patterns"
+  },
+  {
+    "id": "misc_14",
+    "pattern": "found {old_item} while looking for {different_item} and spent {time} with the old item instead. priorities",
+    "reply_trigger": "search detour humor"
+  },
+  {
+    "id": "misc_15",
+    "pattern": "my {mode_of_transport} made a face today. the face said '{what_it_communicated}'. i understood",
+    "reply_trigger": "transport anthropomorphize"
+  },
+  {
+    "id": "misc_16",
+    "pattern": "the {moment_of_day} where you briefly consider {drastic_alternative} before {normal_thing} and then continue as normal",
+    "reply_trigger": "brief drastic thought"
+  },
+  {
+    "id": "misc_17",
+    "pattern": "the {group_activity} had {number} people and i spoke {small_number} words and yet am the most tired of everyone present",
+    "reply_trigger": "introvert group energy drain"
+  },
+  {
+    "id": "misc_18",
+    "pattern": "my autocomplete has learned {embarrassing_phrase} from me typing it too much and it shows",
+    "reply_trigger": "autocomplete learning exposure"
+  },
+  {
+    "id": "misc_19",
+    "pattern": "the {advice} i give freely to others is {irony} the advice i cannot seem to apply to myself. interesting",
+    "reply_trigger": "advice irony self aware"
+  },
+  {
+    "id": "misc_20",
+    "pattern": "accepted {request_type} before fully reading it and now have {consequence} that past me consented to on my behalf",
+    "reply_trigger": "past self consent chaos"
+  },
+  {
+    "id": "misc_21",
+    "pattern": "the {thing_that_usually_works} did not work today and i am taking this as a referendum on {unrelated_aspect_of_my_life}",
+    "reply_trigger": "failure becomes referendum"
+  },
+  {
+    "id": "misc_22",
+    "pattern": "my {personal_area} told a story today about {chapter_of_life} that i was not ready to share with visitors",
+    "reply_trigger": "space tells story"
+  },
+  {
+    "id": "misc_23",
+    "pattern": "the {app_or_service} sent me a notification about {random_thing} at {inappropriate_time} and it genuinely startled my nervous system",
+    "reply_trigger": "notification timing violence"
+  },
+  {
+    "id": "misc_24",
+    "pattern": "someone asked me to {simple_task} and i committed to it with the energy of {overcomplicated_plan} instead. i cannot help myself",
+    "reply_trigger": "simple task overcommit"
+  },
+  {
+    "id": "misc_25",
+    "pattern": "the part of me that {healthy_behavior} is fighting the part of me that {opposing_unhealthy_behavior} and today it's anyone's game",
+    "reply_trigger": "internal two sides fight"
+  },
+  {
+    "id": "misc_26",
+    "pattern": "waved back at someone who wasn't waving at me and have since been processing this as a full {emotion}",
+    "reply_trigger": "accidental wave shame"
+  },
+  {
+    "id": "misc_27",
+    "pattern": "the {number} minute task that took {much_longer} because i got distracted by {unexpected_thing} along the way is my whole personality",
+    "reply_trigger": "task time inflation"
+  },
+  {
+    "id": "misc_28",
+    "pattern": "held a door open {too_long_time} for someone and we both had to walk at the {uncomfortable_pace} for it. the door had consequences",
+    "reply_trigger": "door hold awkward walk"
+  },
+  {
+    "id": "misc_29",
+    "pattern": "the {online_thing} i created in {time_period} just resurfaced and i am a {description} person now. goodbye to who i was",
+    "reply_trigger": "old online thing resurface"
+  },
+  {
+    "id": "misc_30",
+    "pattern": "sent a voice note instead of a text and immediately regretted {specific_thing_i_said} and the intonation i chose. too late",
+    "reply_trigger": "voice note regret"
+  },
+  {
+    "id": "extra_01",
+    "pattern": "the {everyday_app} just sent me a 'we've missed you' notification and i felt nothing. we're strangers now",
+    "reply_trigger": "app guilt trip ignored"
+  },
+  {
+    "id": "extra_02",
+    "pattern": "my {body_part} cracked doing {completely_still_thing} and i need answers from someone with a medical degree",
+    "reply_trigger": "body crack alarm"
+  },
+  {
+    "id": "extra_03",
+    "pattern": "the {song} came on shuffle at the exact moment i was experiencing {matching_emotion} and the universe is writing again",
+    "reply_trigger": "shuffle synchronicity"
+  },
+  {
+    "id": "extra_04",
+    "pattern": "nobody talks about the specific {emotion} of finishing the last episode of a show with no season two confirmed",
+    "reply_trigger": "unconfirmed season grief"
+  },
+  {
+    "id": "extra_05",
+    "pattern": "i have been muting and unmuting myself on calls for {time_spent} instead of doing the one task i needed to do",
+    "reply_trigger": "mute button procrastination"
+  },
+  {
+    "id": "extra_06",
+    "pattern": "the {product} that was exactly what i needed has been discontinued and i am being asked to simply move on. i cannot",
+    "reply_trigger": "perfect product gone"
+  },
+  {
+    "id": "extra_07",
+    "pattern": "my phone suggested {contact_name} in autocomplete and i haven't texted them in {long_time}. the algorithm is keeping receipts",
+    "reply_trigger": "autocomplete guilt trip"
+  },
+  {
+    "id": "extra_08",
+    "pattern": "the {coworker_type} who always joins the call {seconds} late every single time is an artist in the most frustrating way",
+    "reply_trigger": "perpetually late joiner"
+  },
+  {
+    "id": "extra_09",
+    "pattern": "the {thing_in_my_fridge} has been 'still good' for a suspicious amount of time and i'm not asking questions",
+    "reply_trigger": "fridge expiry denial"
+  },
+  {
+    "id": "extra_10",
+    "pattern": "saw {mildly_annoying_post_type} on my feed {number} times today and each time i got more specific in my displeasure",
+    "reply_trigger": "feed annoyance escalation"
+  },
+  {
+    "id": "extra_11",
+    "pattern": "my {hobby_tool} is still in the packaging from {time_ago} and we have a rich fantasy life together",
+    "reply_trigger": "unopened hobby item"
+  },
+  {
+    "id": "extra_12",
+    "pattern": "got to the end of a {long_thing} only to realize i hadn't taken in {percentage}% of it. going back in",
+    "reply_trigger": "comprehension failure redo"
+  },
+  {
+    "id": "extra_13",
+    "pattern": "the {weather_app} lied about {weather_detail} and i am outside processing the betrayal personally",
+    "reply_trigger": "weather app outdoor betrayal"
+  },
+  {
+    "id": "extra_14",
+    "pattern": "my search history is a portrait of someone trying to answer {question} at every hour of the day except during business hours",
+    "reply_trigger": "search history portrait"
+  },
+  {
+    "id": "extra_15",
+    "pattern": "added {item} to my shopping list {number} times and somehow still don't own it. the list is aspirational",
+    "reply_trigger": "list aspiration gap"
+  },
+  {
+    "id": "extra_16",
+    "pattern": "got {number} paragraphs into explaining {topic} before realizing nobody asked. deleted. moved on. almost",
+    "reply_trigger": "unsolicited explanation caught"
+  },
+  {
+    "id": "extra_17",
+    "pattern": "the {daily_notification} arrived and i dealt with it by {not_dealing_with_it} and scheduling the anxiety for later",
+    "reply_trigger": "scheduled later anxiety"
+  },
+  {
+    "id": "extra_18",
+    "pattern": "meant to send {message} to {person_a} and sent it to {person_b} and am now in a very specific kind of situation",
+    "reply_trigger": "wrong recipient message"
+  },
+  {
+    "id": "extra_19",
+    "pattern": "the 'quick favor' someone asked me {time_ago} is still happening and the definition of quick has stretched considerably",
+    "reply_trigger": "quick favor duration inflation"
+  },
+  {
+    "id": "extra_20",
+    "pattern": "my {object_i_rely_on} decided today was a good day to {stop_working} without notice or apology. audacious",
+    "reply_trigger": "relied on object betrayal"
+  },
+  {
+    "id": "extra_21",
+    "pattern": "put my {item} somewhere 'so i wouldn't forget it' and am now in {location} with no {item}. the logic was sound in theory",
+    "reply_trigger": "safe place forgot location"
+  },
+  {
+    "id": "extra_22",
+    "pattern": "the group chat named '{ironic_group_name}' has sent {number} messages today and {zero_relevant} were relevant to me. staying for the culture",
+    "reply_trigger": "group chat irrelevant staying"
+  },
+  {
+    "id": "extra_23",
+    "pattern": "sent my {message_type} at {time} and it's now {later_time} and the typing bubble hasn't appeared once. recalibrating expectations",
+    "reply_trigger": "no reply recalibration"
+  },
+  {
+    "id": "extra_24",
+    "pattern": "my {streaming_service} keeps recommending {genre_i_hate} and i've given it {number} chances to understand me. it doesn't",
+    "reply_trigger": "algorithm misread persist"
+  },
+  {
+    "id": "extra_25",
+    "pattern": "the {household_task} that takes {short_time} in theory took {long_time} in practice and i have been humbled",
+    "reply_trigger": "task time reality check"
+  },
+  {
+    "id": "extra_26",
+    "pattern": "remembered a {minor_errand} i've been forgetting for {weeks} only while in {wrong_location_to_do_it}. this is my origin story",
+    "reply_trigger": "errand wrong time remembered"
+  }
+]

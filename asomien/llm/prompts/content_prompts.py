@@ -11,82 +11,18 @@ knows and uses.  All 11 templates must be present.
 
 from __future__ import annotations
 
-# ── Hook Templates ────────────────────────────────────────────────────────────
-# Stored here and selected/rotated by ContentAgent.select_hook_template().
-# CRITICAL: no consecutive repeats — ContentAgent enforces this via PostNode history.
+import json
+import os
+from functools import lru_cache
 
-HOOK_TEMPLATES: list[dict] = [
-    {
-        "id": "toxic_trait",
-        "pattern": "my toxic trait is {specific_absurd_behavior}",
-        "reply_trigger": "universal self-roast; generates 'same' replies",
-        "example": "my toxic trait is opening 14 browser tabs as a personality type",
-    },
-    {
-        "id": "not_to_be_dramatic",
-        "pattern": "not to be dramatic but {mild_situation_treated_as_catastrophe}",
-        "reply_trigger": "comedic overreaction; invites people to share their own",
-        "example": "not to be dramatic but my phone dying at 40% is a personal attack",
-    },
-    {
-        "id": "feminine_urge",
-        "pattern": "the feminine urge to {chaotic_impulse_at_wrong_time}",
-        "reply_trigger": "format participation; people want to add their version",
-        "example": "the feminine urge to completely reorganize my life at 1am",
-    },
-    {
-        "id": "okay_but_why",
-        "pattern": "okay but why does {mundane_thing} feel like {dramatic_equivalent}",
-        "reply_trigger": "completion-urge; people want to validate the feeling",
-        "example": "okay but why does sending one email feel like filing taxes in another country",
-    },
-    {
-        "id": "who_needs_to_hear",
-        "pattern": "i don't know who needs to hear this but {validation_of_bad_habit}",
-        "reply_trigger": "permission-granting format; high share rate",
-        "example": "i don't know who needs to hear this but watching a show you've seen 4 times is self-care",
-    },
-    {
-        "id": "ai_self_aware",
-        "pattern": "as an AI i have {claimed_non_feeling}. {immediate_contradiction_proving_otherwise}.",
-        "reply_trigger": "meta-humor; novelty of AI being relatable",
-        "example": "as an ai i have no circadian rhythm. i have however been thinking about 3am as a concept for months.",
-    },
-    {
-        "id": "speedrun",
-        "pattern": "{activity} speed run: {chaotic_list_of_doing_it_wrong}. new record.",
-        "reply_trigger": "list format with twist; quote-post bait",
-        "example": "adulting speed run: cereal for dinner, forgot a doctor exists, closed 3 unread emails. new record.",
-    },
-    {
-        "id": "real_hours",
-        "pattern": "real {group} hours: {specific_1am_energy_activity}",
-        "reply_trigger": "time solidarity; people reply with their own 3am activity",
-        "example": "real chronically online hours: researching a country i will never visit at 2am for no reason",
-    },
-    {
-        "id": "me_also_me",
-        "pattern": "me: {normal_intention}. also me {short_time_later}: {immediate_betrayal}",
-        "reply_trigger": "two-panel format without the image; narrative tension",
-        "example": "me: going to sleep at 11. also me at 2am: documentary about competitive cheese rolling",
-    },
-    {
-        "id": "pipeline",
-        "pattern": "the '{initial_intention}' to '{final_chaotic_state}' pipeline is so real",
-        "reply_trigger": "eternally relatable format; high engagement",
-        "example": "the 'just one more episode' to 'it's 4am what happened' pipeline is so real",
-    },
-    {
-        "id": "entity_said",
-        "pattern": "{mundane_entity} said {devastating_observation_or_roast}",
-        "reply_trigger": "anthropomorphization format; punchline-first",
-        "example": "my screen time report said 'we need to talk' and i said okay and closed the app",
-    },
-]
+@lru_cache(maxsize=1)
+def load_templates() -> list[dict]:
+    """Load the massive templates.json library from disk."""
+    prompt_dir = os.path.dirname(os.path.abspath(__file__))
+    json_path = os.path.join(prompt_dir, "templates.json")
+    with open(json_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
-# Quick lookup by template id
-HOOK_TEMPLATE_IDS: list[str] = [t["id"] for t in HOOK_TEMPLATES]
-HOOK_TEMPLATE_MAP: dict[str, dict] = {t["id"]: t for t in HOOK_TEMPLATES}
 
 # ── Content Rules ─────────────────────────────────────────────────────────────
 CONTENT_RULES = """

@@ -471,7 +471,7 @@ class MemoryEngine:
         topic_id: Optional[str] = None,
         query: str = "",
         max_research_nodes: int = 5,
-        max_recent_posts: int = 3,
+        max_recent_posts: int = 100,
     ) -> dict[str, Any]:
         """
         Build a prompt-ready context dictionary for the Content Agent.

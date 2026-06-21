@@ -34,9 +34,7 @@ from asomien.agents.base_agent import BaseAgent
 from asomien.llm.prompts.content_prompts import (
     CONTENT_RULES,
     CONTENT_SYSTEM_PROMPT,
-    HOOK_TEMPLATE_IDS,
-    HOOK_TEMPLATE_MAP,
-    HOOK_TEMPLATES,
+    load_templates,
 )
 from asomien.memory.nodes import PostNode
 
@@ -44,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 # ── Persona constants ──────────────────────────────────────────────────────────
 _MAX_CHARS: int = 500
-_CONSECUTIVE_REPEAT_WINDOW: int = 5   # look back at last N posts for template history
+_CONSECUTIVE_REPEAT_WINDOW: int = 100   # look back at last 100 posts for template history
 _DEFAULT_VARIANT_COUNT: int = 3
 
 
@@ -92,11 +90,13 @@ class ContentAgent(BaseAgent):
         context = self._get_context()
         ideas = self.generate_post_ideas(context)
         if ideas:
+            idea = ideas[0]
             template = self.select_hook_template(
-                recent_posts=context.get("recent_posts", [])
+                recent_posts=context.get("recent_posts", []),
+                idea=idea
             )
             draft = self.draft_content(
-                idea=ideas[0],
+                idea=idea,
                 template_id=template["id"],
                 context=context,
             )
@@ -155,8 +155,7 @@ class ContentAgent(BaseAgent):
         # Priority 1: meme-format-anchored ideas from research
         for node in context.get("research", []):
             fmt = node.get("meme_format_detected", "")
-            if fmt and fmt in HOOK_TEMPLATE_MAP:
-                template = HOOK_TEMPLATE_MAP[fmt]
+            if fmt:
                 ideas.append({
                     "angle": (
                         f"use '{fmt}' format inspired by: {node.get('headline', '')[:80]}"
@@ -165,32 +164,32 @@ class ContentAgent(BaseAgent):
                     "meme_format": fmt,
                     "source_node": node.get("id", ""),
                     "cultural_freshness": node.get("cultural_freshness", 50),
-                    "template": template,
+                    "template": None, # Templates are resolved later dynamically
                 })
 
         # Priority 2: generic sub-niche ideas (always available as fallbacks)
         _FALLBACK_IDEAS = [
             {
                 "angle": "the shared suffering of being extremely online at wrong hours",
-                "sub_niche": "3am energy",
+                "sub_niche": "threeam",
                 "meme_format": "",
                 "template": None,
             },
             {
                 "angle": "phone/screen time doing things to the brain",
-                "sub_niche": "phone brain",
+                "sub_niche": "phone",
                 "meme_format": "",
                 "template": None,
             },
             {
-                "angle": "ai self-awareness bit — the bot knows what it is",
-                "sub_niche": "AI / being an AI",
-                "meme_format": "ai_self_aware",
-                "template": HOOK_TEMPLATE_MAP.get("ai_self_aware"),
+                "angle": "corporate and email dread",
+                "sub_niche": "email",
+                "meme_format": "",
+                "template": None,
             },
             {
                 "angle": "chaotic late-night energy and its consequences",
-                "sub_niche": "sleep deprivation culture",
+                "sub_niche": "sleep",
                 "meme_format": "",
                 "template": None,
             },
@@ -209,56 +208,45 @@ class ContentAgent(BaseAgent):
     def select_hook_template(
         self,
         recent_posts: Optional[list[dict[str, Any]]] = None,
+        idea: Optional[dict[str, Any]] = None,
     ) -> dict:
         """
-        Select a hook template, enforcing no consecutive repeats in the last
-        _CONSECUTIVE_REPEAT_WINDOW (5) posts.
-
-        Blueprint mandate: "Using the same template twice in a row is forbidden."
-        We extend this to 5 posts to prevent rapid cycling.
-
-        Algorithm:
-          1. Extract the last 5 hook_template_used values from recent_posts.
-          2. Build the candidate pool = all templates NOT in that recent window.
-          3. If the pool is empty (rare — all templates used recently), fall back
-             to any template not used in the most recent post only.
-          4. Return a random selection from the candidate pool.
-
-        Parameters
-        ----------
-        recent_posts : list of post dicts with 'hook_template_used' key.
-                       Typically from MemoryEngine.assemble_context()['recent_posts'].
-
-        Returns
-        -------
-        A template dict from HOOK_TEMPLATES.
+        Select a hook template dynamically from templates.json.
+        Filters out any templates used in the last 100 posts.
+        Smartly maps to the idea's sub_niche if possible.
         """
         posts = recent_posts or []
+        templates = load_templates()
 
-        # Extract recent template usage (last N posts, most recent first)
         recent_templates: list[str] = []
         for post in posts[:_CONSECUTIVE_REPEAT_WINDOW]:
             tmpl = post.get("hook_template_used", "") or ""
             if tmpl:
                 recent_templates.append(tmpl)
 
-        # Build candidate pool: exclude templates used in the look-back window
         recent_set = set(recent_templates)
-        candidates = [t for t in HOOK_TEMPLATES if t["id"] not in recent_set]
+        candidates = [t for t in templates if t["id"] not in recent_set]
 
         if not candidates:
-            # Fallback: all templates were used recently — only exclude the last one
-            last_used = recent_templates[0] if recent_templates else ""
-            candidates = [t for t in HOOK_TEMPLATES if t["id"] != last_used]
+            # Fallback
+            candidates = templates
 
-        if not candidates:
-            # Ultimate fallback — should be unreachable since we have 11 templates
-            candidates = HOOK_TEMPLATES
+        # Smart Category Filtering based on sub_niche
+        if idea and idea.get("sub_niche"):
+            niche = idea["sub_niche"].lower()
+            niche_candidates = [t for t in candidates if t["id"].startswith(f"{niche}_")]
+            if niche_candidates:
+                candidates = niche_candidates
+            else:
+                # Try to map broadly (e.g., if niche is threeam, look for sleep too)
+                if niche in ['threeam', 'sleep']:
+                    niche_candidates = [t for t in candidates if t["id"].startswith('threeam_') or t["id"].startswith('sleep_')]
+                    if niche_candidates: candidates = niche_candidates
 
         selected = random.choice(candidates)
         self.log_action(
             action="select_hook_template",
-            reason=f"recent_window={recent_templates[:3]}",
+            reason=f"recent_window_len={len(recent_templates)}, candidate_pool={len(candidates)}",
             outcome=f"selected '{selected['id']}'",
         )
         return selected
@@ -293,10 +281,20 @@ class ContentAgent(BaseAgent):
         List of draft strings. Each is ≤500 chars and lowercase-enforced.
         """
         context = context or {}
+        templates = load_templates()
 
         # Resolve the template
-        tmpl_id = template_id or idea.get("meme_format", "") or random.choice(HOOK_TEMPLATE_IDS)
-        template = HOOK_TEMPLATE_MAP.get(tmpl_id) or random.choice(HOOK_TEMPLATES)
+        template = None
+        if template_id:
+            for t in templates:
+                if t["id"] == template_id:
+                    template = t
+                    break
+        
+        if not template:
+            template = random.choice(templates)
+            
+        tmpl_id = template["id"]
 
         if self.llm_client is None:
             # Deterministic fallback — used in tests and when no LLM key is set
