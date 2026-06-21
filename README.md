@@ -3,6 +3,8 @@
   
   # 𝗔𝗦𝗢𝗠𝗘𝗜𝗡
   
+  **A**utonomous **So**cial **Me**dia **In**fluencer.
+  
   **An Autonomous, Self-Learning AI Framework Engineered for Meta's Threads.**
 
   <p>
