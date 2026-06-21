@@ -46,7 +46,6 @@ from asomien.llm.prompts.critic_prompts import (
     MINIMUM_COMPOSITE_SCORE,
     MINIMUM_SINGLE_DIMENSION,
 )
-from asomien.llm.prompts.content_prompts import HOOK_TEMPLATE_IDS
 from asomien.memory.nodes import CritiqueScore
 
 logger = logging.getLogger(__name__)
