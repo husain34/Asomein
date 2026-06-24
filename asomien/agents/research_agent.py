@@ -7,7 +7,7 @@ and stores them in the MemoryEngine with correct expiry flags.
 Blueprint spec (Section 5 / Step 10):
   - scan_trending_meme_formats() → Reddit r/memes, r/me_irl, r/teenagers, r/dankmemes
   - scan_pop_culture_moments()  → Tumblr RSS + Know Your Meme
-  - keyword_search_threads()    → Threads keyword_search on NICHE_KEYWORDS
+  - keyword_search_bluesky()    → Bluesky searchPosts on NICHE_KEYWORDS
   - search_web()                → DuckDuckGo context enrichment
   - store_findings()            → ResearchAggregator → MemoryEngine.store()
 
@@ -26,14 +26,15 @@ from asomien.agents.base_agent import BaseAgent
 from asomien.memory.engine import MemoryEngine
 from asomien.memory.nodes import ResearchNode
 from asomien.research.aggregator import ResearchAggregator
+from asomien.research.sources.bluesky_keyword_source import (
+    NICHE_KEYWORDS,
+    BlueskyKeywordSource,
+)
 from asomien.research.sources.ddg_source import DuckDuckGoSource
 from asomien.research.sources.knowyourmeme_source import KnowYourMemeSource
 from asomien.research.sources.reddit_source import RedditSource
-from asomien.research.sources.threads_keyword_source import (
-    NICHE_KEYWORDS,
-    ThreadsKeywordSource,
-)
 from asomien.research.sources.tumblr_source import TumblrRSSSource
+from asomien.llm.client import NIMClient
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ class ResearchAgent(BaseAgent):
             reddit_source=RedditSource(reddit=praw.Reddit(...)),
             tumblr_source=TumblrRSSSource(),
             kym_source=KnowYourMemeSource(),
-            threads_source=ThreadsKeywordSource(access_token="..."),
+            bluesky_source=BlueskyKeywordSource(handle="...", app_password="..."),
             ddg_source=DuckDuckGoSource(),
         )
         agent.run()  # runs a single full research cycle
@@ -71,7 +72,7 @@ class ResearchAgent(BaseAgent):
         reddit_source: Optional[RedditSource] = None,
         tumblr_source: Optional[TumblrRSSSource] = None,
         kym_source: Optional[KnowYourMemeSource] = None,
-        threads_source: Optional[ThreadsKeywordSource] = None,
+        bluesky_source: Optional[BlueskyKeywordSource] = None,
         ddg_source: Optional[DuckDuckGoSource] = None,
         aggregator: Optional[ResearchAggregator] = None,
         topic_id: Optional[str] = None,
@@ -81,10 +82,11 @@ class ResearchAgent(BaseAgent):
         self.reddit_source = reddit_source
         self.tumblr_source = tumblr_source
         self.kym_source = kym_source
-        self.threads_source = threads_source
+        self.bluesky_source = bluesky_source
         self.ddg_source = ddg_source
         self.aggregator = aggregator or ResearchAggregator()
         self.topic_id = topic_id
+        self.llm_client = NIMClient()
 
     # ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -113,9 +115,13 @@ class ResearchAgent(BaseAgent):
         pop_findings = self.scan_pop_culture_moments()
         all_findings.extend(pop_findings)
 
-        # ── Threads keyword search ────────────────────────────────────────────
-        threads_findings = self.keyword_search_threads()
-        all_findings.extend(threads_findings)
+        # ── Bluesky keyword search ────────────────────────────────────────────
+        bluesky_findings = self.keyword_search_bluesky()
+        all_findings.extend(bluesky_findings)
+
+        # ── Gen Z Slang Dictionary Fetch ──────────────────────────────────────
+        slang_findings = self.fetch_latest_slang()
+        all_findings.extend(slang_findings)
 
         # ── Aggregate + store ─────────────────────────────────────────────────
         stored_count = self.store_findings(all_findings)
@@ -194,12 +200,12 @@ class ResearchAgent(BaseAgent):
 
         return findings
 
-    def keyword_search_threads(
+    def keyword_search_bluesky(
         self,
         keywords: Optional[list[str]] = None,
     ) -> list[dict[str, Any]]:
         """
-        Search Threads for the niche keyword list.
+        Search Bluesky for the niche keyword list.
 
         Parameters
         ----------
@@ -207,22 +213,47 @@ class ResearchAgent(BaseAgent):
 
         Returns raw finding dicts.
         """
-        if self.threads_source is None:
-            logger.debug("[ResearchAgent] threads_source not configured — skipping")
+        if self.bluesky_source is None:
+            logger.debug("[ResearchAgent] bluesky_source not configured — skipping")
             return []
 
         try:
             kws = keywords or NICHE_KEYWORDS
-            findings = self.threads_source.fetch(keywords=kws)
+            findings = self.bluesky_source.fetch(keywords=kws)
             self.log_action(
-                action="keyword_search_threads",
+                action="keyword_search_bluesky",
                 reason=f"keyword search: {kws[:3]}...",
                 outcome=f"{len(findings)} findings",
             )
             return findings
         except Exception as exc:
-            logger.warning("[ResearchAgent] threads keyword search error: %s", exc)
+            logger.warning("[ResearchAgent] bluesky keyword search error: %s", exc)
             return []
+
+    def fetch_latest_slang(self) -> list[dict[str, Any]]:
+        """
+        Fetch the latest trending Gen Z slang from the web using a dynamically generated query.
+        """
+        if not self.ddg_source:
+            logger.debug("[ResearchAgent] No DuckDuckGoSource available for slang fetch.")
+            return []
+            
+        prompt = "Generate exactly one short, highly specific Google search query to find articles about the most recent Gen Z slang or TikTok internet vocabulary in 2026. Do not use quotes or explanations, just the query itself."
+        try:
+            response = self.llm_client.complete(
+                system_prompt="You are a search query generator. Return ONLY the search query string.",
+                user_prompt=prompt,
+                temperature=0.9,
+                max_tokens=20
+            )
+            search_query = response.strip().strip("'").strip('"')
+            if not search_query:
+                search_query = "trending TikTok Gen Z slang dictionary 2026 meaning"
+        except Exception:
+            search_query = "trending TikTok Gen Z slang dictionary 2026 meaning"
+            
+        logger.info(f"[ResearchAgent] Dynamically generated slang search query: '{search_query}'")
+        return self.ddg_source.search(search_query, max_results=3)
 
     def search_web(self, query: str, max_results: int = 5) -> list[dict[str, Any]]:
         """

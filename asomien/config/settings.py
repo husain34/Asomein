@@ -110,12 +110,9 @@ class Settings(BaseSettings):
     nim_rate_limit_per_minute: int = 40
     nim_rate_limit_soft_cap: int = 35    # buffer under hard limit
 
-    # ── Threads API ───────────────────────────────────────────────────────────
-    threads_access_token: str = ""
-    threads_user_id: str = ""
-    threads_app_id: str = ""
-    threads_app_secret: str = ""
-    threads_api_base: str = "https://graph.threads.net/v1.0"
+    # ── Bluesky API ───────────────────────────────────────────────────────────
+    bluesky_handle: str = "asomein.bsky.social"
+    bluesky_app_password: str = "no72-emsr-w2gb-jnpg"
 
     # ── Reddit API ────────────────────────────────────────────────────────────
     reddit_client_id: str = ""

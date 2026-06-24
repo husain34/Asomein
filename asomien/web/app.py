@@ -154,7 +154,10 @@ INDEX_HTML = """
     </style>
 </head>
 <body>
-    <h1><span class="pulse"></span> Asomien Command Center</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="margin-bottom: 0;"><span class="pulse"></span> Asomien Command Center</h1>
+        <button hx-post="/publish_now" hx-swap="none" onclick="this.innerText='Publishing...'; setTimeout(() => this.innerText='Instant Publish', 5000);" style="background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Outfit', sans-serif; font-size: 1rem; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1">Instant Publish</button>
+    </div>
     <div class="grid">
         <div class="left-col" style="display: flex; flex-direction: column; gap: 2rem; height: 100%;">
             <div class="panel" style="flex: 1;" id="status-panel" hx-get="/status" hx-trigger="load, every 5s">Loading Status...</div>
@@ -176,6 +179,13 @@ def create_app(orchestrator):
     @app.get("/", response_class=HTMLResponse)
     def index():
         return INDEX_HTML
+
+    @app.post("/publish_now")
+    def publish_now():
+        """Instantly trigger a publish cycle."""
+        import threading
+        threading.Thread(target=app.state.orchestrator.run_publish_cycle, daemon=True).start()
+        return {"status": "Publish cycle triggered"}
 
     @app.get("/status")
     def status(request: Request):

@@ -17,6 +17,7 @@ class MasterOrchestrator:
     def __init__(
         self,
         content_agent=None,
+        creative_agent=None,
         critic_agent=None,
         research_agent=None,
         engagement_agent=None,
@@ -25,6 +26,7 @@ class MasterOrchestrator:
         memory=None,
     ) -> None:
         self.content_agent = content_agent
+        self.creative_agent = creative_agent
         self.critic_agent = critic_agent
         self.research_agent = research_agent
         self.engagement_agent = engagement_agent
@@ -45,9 +47,30 @@ class MasterOrchestrator:
                 logger.error("[MasterOrchestrator] Failed to verify configuration tables: %s", e)
 
     def is_warmup_phase(self) -> bool:
-        """Check if we are in the warmup phase (first 7-14 days)."""
-        # For phase 6, default to False or implement basic logic
-        return False
+        """Check if we are in the warmup phase (first 14 days)."""
+        if not self.memory:
+            return True
+        try:
+            import sqlite3
+            from datetime import datetime, timedelta, timezone
+            with sqlite3.connect(self.memory.db_path) as conn:
+                cursor = conn.execute("SELECT MIN(created_at) FROM posts WHERE status = 'published'")
+                first_post_date = cursor.fetchone()[0]
+                if not first_post_date:
+                    return True
+                
+                first_dt = datetime.fromisoformat(first_post_date.replace('Z', '+00:00'))
+                # Make timezone-aware if naive
+                if first_dt.tzinfo is None:
+                    first_dt = first_dt.replace(tzinfo=timezone.utc)
+                    
+                now_utc = datetime.now(timezone.utc)
+                if now_utc - first_dt < timedelta(days=14):
+                    return True
+                return False
+        except Exception as e:
+            logger.error("[MasterOrchestrator] Error checking warmup phase: %s", e)
+            return True
 
     def run_publish_cycle(self, scheduled_base=None, jitter_offset=0) -> None:
         """Trigger the publish cycle."""
@@ -57,7 +80,61 @@ class MasterOrchestrator:
             jitter_offset,
         )
         if self.content_agent and self.critic_agent and self.adapter:
-            # Full publish logic will go here
+            try:
+                context = self.content_agent._get_context()
+                ideas = self.content_agent.generate_post_ideas(context)
+                if not ideas:
+                    logger.warning("[MasterOrchestrator] No ideas generated.")
+                    return
+                
+                idea = ideas[0]
+                template = self.content_agent.select_hook_template(
+                    recent_posts=context.get("recent_posts", []),
+                    idea=idea
+                )
+                
+                variants = self.content_agent.draft_content(
+                    idea=idea,
+                    template_id=template["id"],
+                    context=context,
+                )
+                
+                if not variants:
+                    logger.warning("[MasterOrchestrator] No variants drafted.")
+                    return
+                
+                if self.creative_agent:
+                    logger.info("[MasterOrchestrator] Passing drafts through CreativeAgent for refinement.")
+                    refined_variants = []
+                    for v in variants:
+                        refined = self.creative_agent.refine_draft(v)
+                        refined_variants.append(refined)
+                    variants = refined_variants
+                
+                best_draft, best_score = self.critic_agent.select_best(variants)
+                
+                if best_draft and best_score and best_score.is_approved:
+                    logger.info("[MasterOrchestrator] Best draft selected. Publishing...")
+                    post_id = self.adapter.publish_text_post(best_draft)
+                    logger.info("[MasterOrchestrator] Successfully published! ID: %s", post_id)
+                    
+                    if self.memory:
+                        import sqlite3
+                        import uuid
+                        from datetime import datetime
+                        with sqlite3.connect(self.memory.db_path) as conn:
+                            conn.execute(
+                                """
+                                INSERT INTO posts (id, content, status, is_reply, hook_template_used, threads_post_id, created_at)
+                                VALUES (?, ?, 'published', 0, ?, ?, ?)
+                                """,
+                                (str(uuid.uuid4()), best_draft, template["id"], post_id, datetime.now().isoformat())
+                            )
+                else:
+                    logger.warning("[MasterOrchestrator] No drafts passed the critic.")
+                    
+            except Exception as e:
+                logger.error("[MasterOrchestrator] Publish cycle failed: %s", e)
             logger.info("[MasterOrchestrator] Publish cycle executed.")
 
     def run_research_cycle(self) -> None:
@@ -69,6 +146,11 @@ class MasterOrchestrator:
     def run_engagement_cycle(self) -> None:
         """Trigger the engagement cycle."""
         logger.info("[MasterOrchestrator] run_engagement_cycle called.")
+        
+        if not self.enforce_warmup_caps(is_reply=True):
+            logger.info("[MasterOrchestrator] Engagement cycle skipped due to warmup caps.")
+            return
+            
         if self.engagement_agent:
             try:
                 self.engagement_agent.run()
@@ -112,16 +194,46 @@ class MasterOrchestrator:
     def run_weekly_analysis(self) -> None:
         """Run weekly analysis."""
         logger.info("[MasterOrchestrator] run_weekly_analysis called.")
+        if self.critic_agent:
+            self.critic_agent.analyze_weekly_performance()
 
     def enforce_warmup_caps(self, is_reply: bool = False) -> bool:
-        """Logic to ensure we don't exceed 1 post/day and 5 replies/day for the first 14 days."""
+        """Logic to ensure we don't exceed 1 post/day and 10 replies/day for the first 14 days."""
         if not self.is_warmup_phase():
             return True
             
         logger.info("[MasterOrchestrator] Enforcing warmup caps for Day 1-14.")
-        # In a complete implementation, queries metrics.db.
-        # Returning True for now as a permissive stub.
-        return True
+        if not self.memory:
+            return True
+            
+        try:
+            import sqlite3
+            from datetime import datetime
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            
+            with sqlite3.connect(self.memory.db_path) as conn:
+                if is_reply:
+                    cur = conn.execute(
+                        "SELECT COUNT(*) FROM posts WHERE status='published' AND is_reply=1 AND date(created_at) = ?",
+                        (today_str,)
+                    )
+                    count = cur.fetchone()[0]
+                    if count >= 10:
+                        logger.warning("[MasterOrchestrator] Warmup reply cap (10) reached today.")
+                        return False
+                else:
+                    cur = conn.execute(
+                        "SELECT COUNT(*) FROM posts WHERE status='published' AND is_reply=0 AND date(created_at) = ?",
+                        (today_str,)
+                    )
+                    count = cur.fetchone()[0]
+                    if count >= 1:
+                        logger.warning("[MasterOrchestrator] Warmup post cap (1) reached today.")
+                        return False
+            return True
+        except Exception as e:
+            logger.error("[MasterOrchestrator] Error enforcing warmup caps: %s", e)
+            return True
 
     def manage_sleep_mode(self) -> bool:
         """Implement a 'night-mode' where the bot stops posting/replying between 02:00 and 07:00 local time."""

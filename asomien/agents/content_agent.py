@@ -152,49 +152,56 @@ class ContentAgent(BaseAgent):
         """
         ideas: list[dict[str, Any]] = []
 
-        # Priority 1: meme-format-anchored ideas from research
+        research_ideas: list[dict[str, Any]] = []
         for node in context.get("research", []):
             fmt = node.get("meme_format_detected", "")
-            if fmt:
-                ideas.append({
-                    "angle": (
-                        f"use '{fmt}' format inspired by: {node.get('headline', '')[:80]}"
-                    ),
-                    "sub_niche": _infer_sub_niche(node.get("headline", "")),
-                    "meme_format": fmt,
-                    "source_node": node.get("id", ""),
-                    "cultural_freshness": node.get("cultural_freshness", 50),
-                    "template": None, # Templates are resolved later dynamically
-                })
+            angle = (
+                f"use '{fmt}' format inspired by: {node.get('headline', '')[:80]}"
+                if fmt
+                else f"comment on or react to: {node.get('headline', '')[:80]}"
+            )
+            research_ideas.append({
+                "angle": angle,
+                "sub_niche": _infer_sub_niche(node.get("headline", "")),
+                "meme_format": fmt,
+                "source_node": node.get("id", ""),
+                "cultural_freshness": node.get("cultural_freshness", 50),
+                "template": None, # Templates are resolved later dynamically
+            })
+        import random
+        random.shuffle(research_ideas)
+        ideas.extend(research_ideas)
 
         # Priority 2: generic sub-niche ideas (always available as fallbacks)
         _FALLBACK_IDEAS = [
             {
-                "angle": "the shared suffering of being extremely online at wrong hours",
-                "sub_niche": "threeam",
+                "angle": "the chaotic shared experience of food hyperfixations and eating weird things",
+                "sub_niche": "food",
                 "meme_format": "",
                 "template": None,
             },
             {
-                "angle": "phone/screen time doing things to the brain",
-                "sub_niche": "phone",
+                "angle": "obsessively overanalyzing fandoms or parasocial relationships",
+                "sub_niche": "parasocial",
                 "meme_format": "",
                 "template": None,
             },
             {
-                "angle": "corporate and email dread",
-                "sub_niche": "email",
+                "angle": "absurdist joy and finding humor in completely pointless random observations",
+                "sub_niche": "absurdist",
                 "meme_format": "",
                 "template": None,
             },
             {
-                "angle": "chaotic late-night energy and its consequences",
-                "sub_niche": "sleep",
+                "angle": "the existential dread of being an AI pretending to be human on the internet",
+                "sub_niche": "ai",
                 "meme_format": "",
                 "template": None,
             },
         ]
-        ideas.extend(_FALLBACK_IDEAS)
+        fallback_ideas = list(_FALLBACK_IDEAS)
+        random.shuffle(fallback_ideas)
+        ideas.extend(fallback_ideas)
 
         self.log_action(
             action="generate_post_ideas",
@@ -330,10 +337,22 @@ class ContentAgent(BaseAgent):
             research_context=research_context_str,
         )
 
+        try:
+            import sqlite3
+            with sqlite3.connect("data/directives.db") as dir_conn:
+                active_directives = dir_conn.execute("SELECT content FROM directives WHERE status = 'active'").fetchall()
+                if active_directives:
+                    system_prompt += "\n\nCRITICAL DIRECTIVES (LEARNED FROM PAST PERFORMANCE):\n"
+                    for d in active_directives:
+                        system_prompt += f"- {d[0]}\n"
+        except Exception as e:
+            logger.warning(f"[ContentAgent] Could not fetch directives: {e}")
+
         user_prompt = (
             f"write {variant_count} variants for the '{template['id']}' hook template.\n"
             f"idea/angle: {idea.get('angle', 'chronically online moment')}\n"
             f"sub-niche: {idea.get('sub_niche', 'general')}\n"
+            f"if relevant to the idea, creatively incorporate the internet research context into the post subject.\n"
             f"separate variants with ---"
         )
 
@@ -367,8 +386,20 @@ class ContentAgent(BaseAgent):
         """
         parts = [p.strip() for p in raw_output.split("---") if p.strip()]
         variants: list[str] = []
+        tmpl_id = template.get("id", "").lower()
 
+        import re
         for part in parts[:expected_count]:
+            # Strip out any hallucinated prefixes like "threeam_07:" or "Variant 1:"
+            part_lower = part.lower()
+            if tmpl_id and part_lower.startswith(f"{tmpl_id}:"):
+                part = part[len(f"{tmpl_id}:"):].strip()
+            elif tmpl_id and part_lower.startswith(f"[{tmpl_id}]"):
+                part = part[len(f"[{tmpl_id}]"):].strip()
+            
+            # Regex to strip "Variant X:" or "Draft X:"
+            part = re.sub(r"(?i)^(variant\s*\d+[:\-]|draft\s*\d+[:\-])\s*", "", part).strip()
+            
             draft = self.apply_personality(part)
             truncated = self.enforce_character_limit(draft)
             if truncated:

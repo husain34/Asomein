@@ -292,12 +292,14 @@ class SchedulerManager:
             replace_existing=True,
         )
 
-        # ── Engagement loop: every 10 minutes ─────────────────────────────────
+        # ── Engagement loop: every 30 minutes ─────────────────────────────────
+        # Runs immediately on startup, and then every 30 minutes.
         scheduler.add_job(
             self.job_engage_replies,
             "interval",
-            minutes=10,
+            minutes=30,
             id="engagement_loop",
+            next_run_time=datetime.now(),
             replace_existing=True,
         )
 
@@ -377,7 +379,20 @@ class SchedulerManager:
             replace_existing=True,
         )
 
+        # ── Churn follows: 04:00 ──────────────────────────────────────────────
+        scheduler.add_job(
+            self.job_churn_follows,
+            "cron",
+            hour=4,
+            minute=0,
+            id="churn_follows",
+            replace_existing=True,
+        )
+
         logger.info("[SchedulerManager] All jobs registered.")
+
+        # Bootstrap: schedule today's remaining windows in case the server was rebooted after 07:30
+        self.job_schedule_todays_publishes()
 
     # ── Core daily publish job ────────────────────────────────────────────────
 
@@ -415,6 +430,14 @@ class SchedulerManager:
         for base_time in windows:
             jittered_time, offset = self._apply_jitter(base_time)
             job_id = f"publish_{base_time.strftime('%H%M')}_{today.date()}"
+
+            if jittered_time < datetime.now():
+                logger.info(
+                    "[SchedulerManager] Skipping past window: actual=%s, job_id=%s",
+                    jittered_time.strftime("%H:%M"),
+                    job_id,
+                )
+                continue
 
             if self.scheduler is not None:
                 self.scheduler.add_job(
@@ -560,8 +583,19 @@ class SchedulerManager:
                 # 1. Query the last 24h of PostNodes from the database
                 cutoff = (datetime.now() - timedelta(hours=24)).isoformat()
                 with sqlite3.connect(self.orchestrator.memory.db_path) as conn:
+                    conn.row_factory = sqlite3.Row
+                    conn.execute("ATTACH DATABASE 'data/metrics.db' AS metrics")
                     cursor = conn.execute(
-                        "SELECT * FROM posts WHERE created_at >= ? ORDER BY created_at DESC", 
+                        """
+                        SELECT p.*, 
+                               COALESCE(pm.views, 0) as views, 
+                               COALESCE(pm.likes, 0) as likes, 
+                               COALESCE(pm.replies, 0) as replies 
+                        FROM posts p
+                        LEFT JOIN metrics.post_metrics pm ON p.id = pm.post_id
+                        WHERE p.created_at >= ? AND p.status = 'published'
+                        ORDER BY p.created_at DESC
+                        """, 
                         (cutoff,)
                     )
                     recent_posts = [dict(r) for r in cursor.fetchall()]
@@ -576,6 +610,14 @@ class SchedulerManager:
                 self.orchestrator.critic_agent.update_rules(reflection_data)
                 if hasattr(self.orchestrator.critic_agent, 'decay_rules'):
                     self.orchestrator.critic_agent.decay_rules()
+                    
+                # 4. Creative Agent Reflection
+                if hasattr(self.orchestrator, 'creative_agent') and self.orchestrator.creative_agent:
+                    if hasattr(self.orchestrator.creative_agent, 'run_creative_reflection'):
+                        creative_reflection_data = self.orchestrator.creative_agent.run_creative_reflection(recent_posts)
+                        self.orchestrator.creative_agent.update_rules(creative_reflection_data)
+                    if hasattr(self.orchestrator.creative_agent, 'decay_rules'):
+                        self.orchestrator.creative_agent.decay_rules()
                     
             except Exception as exc:
                 logger.error("[SchedulerManager] job_reflect error: %s", exc)
@@ -647,3 +689,12 @@ class SchedulerManager:
                 self.orchestrator.run_weekly_analysis()
             except Exception as exc:
                 logger.error("[SchedulerManager] Weekly analysis error: %s", exc)
+
+    def job_churn_follows(self) -> None:
+        """Daily: unfollow users who didn't follow back or unfollowed us."""
+        logger.debug("[SchedulerManager] job_churn_follows fired.")
+        if self.orchestrator is not None:
+            try:
+                self.orchestrator.engagement_agent.churn_unrequited_follows()
+            except Exception as exc:
+                logger.error("[SchedulerManager] Churn follows error: %s", exc)

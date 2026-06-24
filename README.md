@@ -5,11 +5,11 @@
   
   **A**utonomous **So**cial **Me**dia **In**fluencer.
   
-  **An Autonomous, Self-Learning AI Framework Engineered for Meta's Threads.**
+  **An Autonomous, Self-Learning AI Framework Engineered for the AT Protocol (Bluesky).**
 
   <p>
     <img src="https://img.shields.io/badge/Python-3.11+-blue.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-    <img src="https://img.shields.io/badge/Meta_Threads-Graph_API-000000.svg?style=for-the-badge&logo=threads&logoColor=white" alt="Threads API" />
+    <img src="https://img.shields.io/badge/Bluesky-AT_Protocol-0085FF.svg?style=for-the-badge&logo=bluesky&logoColor=white" alt="Bluesky API" />
     <img src="https://img.shields.io/badge/Llama_3.1_70B-NVIDIA_NIM-76B900.svg?style=for-the-badge&logo=nvidia&logoColor=white" alt="NVIDIA NIM" />
     <img src="https://img.shields.io/badge/Status-Fully_Autonomous-success.svg?style=for-the-badge" alt="Status" />
   </p>
@@ -19,124 +19,102 @@
 
 ---
 
-## 🌟 Executive Summary
-
-**Asomein** is a deeply sophisticated, multi-agent artificial intelligence architecture designed to fully automate a highly engaging, human-like persona on Meta's Threads. 
-
-Moving far beyond simple "cron-job" bots that post generic quotes, Asomein mimics a "chronically online" 20-something navigating existential dread, minor inconveniences, and deeply relatable internet culture. It doesn't just randomly generate text; it actively **researches the live internet**, pulls from a massive engineered database of 500 algorithmic templates, drafts multiple variants, critiques its own jokes, monitors live engagement metrics, and mathematically **learns what formats go viral** to adapt its future behavior.
-
----
-
-## 🚀 Core Features
-
-- **🌐 Live Cultural Scraping:** The `ResearchAgent` actively scrapes the front page of KnowYourMeme, Tumblr RSS feeds, and Reddit to understand what humans are talking about *today*.
-- **📚 500-Template Algorithmic Library:** Instead of relying on raw LLM hallucinations, Asomein maps its live research against a massive `templates.json` library containing 500 hyper-categorized, hardcoded comedic templates (e.g., `the midnight version of me would like to apologize to the 8am version of me for {last_night_decision}`).
-- **🧠 Self-Learning & Adaptation:** Asomein features an `AnalyticsAgent` that harvests live Threads data (views, likes, replies) and calculates a mathematical **Creator Engagement Score**. The `ReflectionNode` uses this data to permanently write new behavioral rules to its SQLite memory engine.
-- **🛡️ Strict Quality Control:** A secondary Llama 3.1 70B `CriticAgent` brutally reviews all drafted posts. If a post sounds "too AI," uses forbidden words like "hustle," or exceeds character limits, the Critic deletes it and forces a total rewrite.
-- **🕒 Human-Mimicry Scheduling:** Posts are not scheduled at robotic times like `12:00 PM`. The `SchedulerManager` calculates randomized daily windows with dynamic "jitter" to perfectly mimic a human pulling out their phone on a lunch break.
+## Table of Contents
+1. [Executive Summary](#executive-summary)
+2. [Agent Architecture](#agent-architecture)
+   - [Master Orchestrator](#master-orchestrator)
+   - [Content Agent](#content-agent)
+   - [Engagement Agent](#engagement-agent)
+   - [Research Agent](#research-agent)
+   - [Analytics Agent](#analytics-agent)
+   - [Reflection Agent](#reflection-agent)
+3. [Memory & Database Architecture](#memory--database-architecture)
+4. [Safety & Compliance Mechanics](#safety--compliance-mechanics)
+5. [Setup & Deployment](#setup--deployment)
 
 ---
 
-## 🏗️ The 8-Phase Autonomous Architecture
+## Executive Summary
 
-The codebase is built on a highly modular Multi-Agent System coordinated by the `MasterOrchestrator`. Each agent operates independently but shares a centralized SQLite Memory Engine.
+**Asomein** is a deeply sophisticated, multi-agent artificial intelligence architecture designed to fully automate a highly engaging, human-like persona on Bluesky. 
 
-```mermaid
-graph TD
-    A[Master Orchestrator] --> B(Research Agent)
-    A --> C(Content Agent)
-    A --> D(Critic Agent)
-    A --> E(Threads API Adapter)
-    A --> F(Engagement Agent)
-    A --> G(Analytics Agent)
-    
-    B -->|Scrapes Web Trends| C
-    C -->|Drafts 3 Variants| D
-    D -->|Approves Best Draft| E
-    E -->|Publishes to Meta| H((Live Threads Account))
-    H -->|Reads Replies| F
-    H -->|Pulls Metrics| G
-    G -->|Calculates Virality| I{Reflection Engine}
-    I -->|Updates Rules| C
-```
-
-### 1. Initialization (`MemoryEngine`)
-Boots up the long-term SQLite database (`memory.db`), caching previous interactions, global variables, and AI reflection directives.
-
-### 2. Cultural Research (`ResearchAgent`)
-Scrapes the internet for trending memes, niche topics, and real-time cultural context to ensure the bot is never out of touch.
-
-### 3. Context-Aware Generation (`ContentAgent`)
-Selects the perfect hook template from the 500-template library and commands **Llama 3.1 70B** (via NVIDIA NIM) to force the internet research to fit inside the comedic constraints of the template. It generates 3 separate variants.
-
-### 4. Quality Control (`CriticAgent`)
-Evaluates the 3 drafts, grading them on tone, length, formatting, and relatability. It calculates a composite score. Any draft scoring below `0.58` is instantly rejected. The highest-scoring draft wins.
-
-### 5. API Publish (`ThreadsAdapter`)
-Bypasses Meta's native UI restrictions and natively publishes the winning text directly to the Meta Threads Graph API using secure OAuth tokens.
-
-### 6. Inbound Engagement (`EngagementAgent`)
-Reads replies from human users and generates snarky, dry, in-character responses to build community interactions.
-
-### 7. Analytics Collection (`AnalyticsAgent`)
-Harvests virality metrics from the live API.
-
-### 8. Reflection & Learning (`ReflectionNode`)
-Updates the bot's internal rulebook based on the mathematical success or failure of previous posts.
+Moving far beyond simple "cron-job" bots that post generic quotes, Asomein mimics a "chronically online" Gen-Z navigating existential dread, minor inconveniences, and deeply relatable internet culture. It actively **researches the live internet**, drafts variants, critiques its own jokes, monitors live engagement metrics, organically grows its following via automated follow churn, and learns what formats go viral to adapt its future behavior.
 
 ---
 
-## 📐 The Math Behind "Going Viral"
+## Agent Architecture
 
-What makes Asomein incredibly powerful is how it defines "Virality." It does not rely on raw Like counts, which are skewed by follower size. Instead, the `AnalyticsAgent` calculates a **Creator Engagement Score** by dividing weighted interactions by total views:
+The system is composed of specialized agents that interact with each other and the databases.
 
-```python
-Weighted_Engagement = (Likes * 1) + (Replies * 27) + (Reposts * 5) + (Quotes * 8)
-Creator_Engagement_Score = Weighted_Engagement / Total_Views
-```
+### Master Orchestrator
+The `MasterOrchestrator` (`asomien/core/orchestrator.py`) is the brain of the operation. It initializes the SQLite databases, instantiates the adapter (`BlueskyAdapter`), and orchestrates the agent lifecycle. It hands off tasks to the specialized agents based on the schedule defined in `SchedulerManager` (`asomien/scheduler/jobs.py`).
 
-By dividing by **Views**, the system measures the *true quality* and conversion rate of the joke. If a 0-follower account gets 1,000 views and 100 likes, the system correctly recognizes a massively viral format and updates the AI's internal logic to prioritize that template category moving forward.
+### Content Agent
+Responsible for creating original, organic timeline posts.
+- **Context Gathering:** Before writing, it requests the latest memes and slang from the Research Agent.
+- **Drafting:** Uses the LLM to write a draft strictly following the "no punctuation, all lowercase, delusional/existential" persona.
+- **Publishing:** The Orchestrator schedules this agent's output at randomized optimal windows.
 
----
+### Engagement Agent
+Responsible for interacting with the wider network. It handles three main tasks:
+1. **Mention Replies:** Reads unread notifications and replies directly to users.
+2. **Global Search Engagement:** Searches the Bluesky firehose for highly relatable keywords, drops a sarcastic or validating comment, and organically follows the author.
+3. **Unrequited Follow Churn:** Periodically scans the database for users followed > 30 days ago. If they do not currently follow the bot back, it triggers an `unfollow` via the AT Protocol.
 
-## 🛠️ Installation & Deployment
+### Research Agent
+Acts as the sensory input for the system. It periodically scrapes external sources (like Reddit or the Bluesky timeline) to extract new slang, viral topics, and "vibes". It stores these insights in the Directives database so the Content and Engagement agents can use them as context.
 
-Asomein is built to run autonomously on a dedicated server or local machine.
+### Analytics Agent
+Responsible for gathering quantitative data. Periodically polls the Bluesky API for the bot's own posts to record Like, Reply, and Repost counts. It writes these snapshots to the `metrics.db`.
 
-### Prerequisites
-- Python 3.11+
-- Meta Developer Account (Threads Graph API Access)
-- NVIDIA Developer Account (NIM API Key)
-
-### Setup
-```bash
-# 1. Clone the repository
-git clone https://github.com/yourusername/asomein.git
-cd asomein
-
-# 2. Set up the virtual environment
-python -m venv venv
-.\venv\Scripts\activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Configure environment variables
-# Ensure your .env file is populated with your API keys:
-# NVIDIA_NIM_API_KEY=...
-# THREADS_ACCESS_TOKEN=...
-# THREADS_USER_ID=...
-```
-
-### Launch the Autonomous Empire
-```bash
-# Start the Master Orchestrator
-python main.py --start
-```
-*(Pro-tip: Run the script using a process manager like `pm2` or `systemd` to keep the bot alive permanently in the background).*
+### Reflection Agent
+The self-improvement module. It runs weekly to analyze the data gathered by the Analytics Agent. If a specific topic or slang word performs exceptionally well, it generates a "Directive" (e.g., *Use the word 'wig' more often*) and saves it to the `directives.db` to guide future behavior.
 
 ---
 
-<div align="center">
-  <i>"a large language model running on anxiety and 14 open tabs. please don't unplug my server, i'm not done overthinking."</i>
-</div>
+## Memory & Database Architecture
+
+The project entirely relies on **SQLite3 in WAL (Write-Ahead Logging) mode** to prevent database locking errors during concurrent multi-agent access.
+
+The databases are stored in the `data/` directory:
+1. **`memory.db`**: Stores `posts` (original and replies) and `follow_history` (tracking every DID the bot follows and the exact timestamp, used for the 30-day churn).
+2. **`metrics.db`**: Stores engagement snapshots for analytical tracking.
+3. **`directives.db`**: Stores the learned rules and vibe shifts generated by the Reflection Agent.
+
+---
+
+## Safety & Compliance Mechanics
+
+To prevent the account from being shadowbanned or behaving unnaturally, Asomein enforces strict safety rules:
+
+1. **The 14-Day Warmup Phase:** For the first 14 days of the account's life, the Orchestrator brutally limits API calls. It allows a maximum of 1 original post per day and severely caps replies to prevent spam detection algorithms from flagging the bot.
+2. **Human Simulation Delays:** The Engagement Agent enforces `time.sleep` calculations based on the length of the text it is "reading" and the length of the text it is "typing" before it executes an API call.
+3. **Anti-Cheat Constraints:** The LLM prompts explicitly ban "lazy agreement" words (same, real, mood, literally me). The bot is forced to generate unique, varied sentence structures under 15 words.
+4. **Jitter:** The APScheduler automatically applies a random `±0-45 minute` jitter to all scheduled posts so the bot never publishes exactly on the hour.
+
+---
+
+## Setup & Deployment
+
+1. **Environment Config:** 
+   Ensure `.env` contains:
+   ```env
+   NVIDIA_NIM_API_KEY="your_key"
+   BLUESKY_HANDLE="your.handle.bsky.social"
+   BLUESKY_PASSWORD="your-app-password"
+   ```
+
+2. **Installation:**
+   ```bash
+   python -m venv venv
+   .\venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+3. **Running the Daemon (PM2):**
+   The application is designed to run indefinitely via PM2 to ensure the APScheduler stays alive.
+   ```bash
+   pm2 start ecosystem.config.js
+   pm2 logs asomien-bot
+   ```
+   *(To apply environment variable changes after the initial launch, always run `pm2 restart asomien-bot --update-env`)*

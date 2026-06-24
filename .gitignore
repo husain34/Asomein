@@ -8,9 +8,8 @@ env.bak/
 venv.bak/
 
 # Database and Logs
-data/*.db
-data/*.sqlite
-data/*.sqlite3
+data/
+*.bak
 logs/*.log
 *.log
 

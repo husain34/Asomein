@@ -39,6 +39,40 @@ class AnalyticsAgent(BaseAgent):
             action="analytics_cycle",
             reason="scheduled analytics collection",
         )
+        
+        try:
+            import sqlite3
+            from types import SimpleNamespace
+            
+            # 1. Query the last 20 published posts from memory.db
+            with sqlite3.connect("data/memory.db") as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.execute(
+                    """
+                    SELECT id, threads_post_id 
+                    FROM posts 
+                    WHERE status = 'published' 
+                      AND threads_post_id != '' 
+                      AND threads_post_id IS NOT NULL
+                    ORDER BY COALESCE(actual_publish_time, created_at) DESC 
+                    LIMIT 20
+                    """
+                )
+                rows = cursor.fetchall()
+            
+            # 2. Collect metrics and store snapshots
+            for row in rows:
+                post = SimpleNamespace(id=row["id"], threads_post_id=row["threads_post_id"])
+                try:
+                    snapshot = self.collect_post_metrics(post)
+                    self._store_snapshot(snapshot)
+                    logger.debug("[AnalyticsAgent] Stored metrics snapshot for post %s", post.id)
+                except Exception as e:
+                    logger.error("[AnalyticsAgent] Failed to collect metrics for post %s: %s", post.id, e)
+                    
+        except Exception as e:
+            logger.error("[AnalyticsAgent] Error in analytics cycle: %s", e)
+            
         self.stop()
 
     def _connect(self) -> sqlite3.Connection:
@@ -158,6 +192,26 @@ class AnalyticsAgent(BaseAgent):
             raise RuntimeError("AnalyticsAgent requires an adapter")
 
         payload = self.adapter.get_audience_insights()
+        
+        followers_count = int(payload.get("followers_count", 0))
+        try:
+            conn = self._connect()
+            import uuid
+            from datetime import datetime, timezone
+            snapshot_id = str(uuid.uuid4())
+            now = datetime.now(timezone.utc).isoformat()
+            conn.execute(
+                "INSERT INTO audience_snapshots (id, snapshot_time, followers_count) VALUES (?, ?, ?)",
+                (snapshot_id, now, followers_count)
+            )
+            conn.commit()
+            logger.debug("[AnalyticsAgent] Stored audience snapshot with %s followers", followers_count)
+        except Exception as e:
+            logger.error("[AnalyticsAgent] Failed to store audience snapshot: %s", e)
+        finally:
+            if 'conn' in locals() and getattr(conn, 'close', None):
+                conn.close()
+                
         return payload
 
     def aggregate_daily_stats(self, date_str: Optional[str] = None) -> dict[str, Any]:

@@ -81,6 +81,10 @@ class ThreadsAdapter(BasePlatformAdapter):
                 return payload
             except requests.RequestException as exc:
                 last_error = exc
+                # If the error is a 4xx Client Error, DO NOT retry. It's a permanent failure (e.g. invalid ID).
+                if getattr(exc, "response", None) is not None and 400 <= exc.response.status_code < 500:
+                    logger.error("Threads API 4xx error on attempt %s. Aborting retries: %s", attempt + 1, exc)
+                    raise
                 if attempt == retry - 1:
                     raise
                 logger.warning(
@@ -201,19 +205,22 @@ class ThreadsAdapter(BasePlatformAdapter):
     def get_publishing_quota(self, **kwargs: Any) -> dict[str, Any]:
         return self.get_audience_insights(**kwargs)
 
-    def get_mentions(self, **kwargs: Any) -> list[dict[str, Any]]:
-        """Fetch recent replies/mentions directed at this account."""
+    def get_post_replies(self, media_id: str, **kwargs: Any) -> list[dict[str, Any]]:
+        """Fetch top-level replies for a specific Threads post."""
         try:
+            params = {
+                "access_token": self.access_token,
+                "fields": "id,text",
+            }
+            params.update(kwargs)
+            
             payload = self._request(
                 method="GET",
-                endpoint=f"{self.user_id}/replies",
-                params={
-                    "access_token": self.access_token,
-                    **kwargs,
-                },
+                endpoint=f"{media_id}/replies",
+                params=params,
             )
             return payload.get("data", [])
         except requests.HTTPError as e:
-            logger.warning("Failed to fetch mentions/replies from Threads API: %s", e)
+            logger.warning("Failed to fetch replies for post %s: %s", media_id, e)
             return []
 

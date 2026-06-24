@@ -61,7 +61,7 @@ class DuckDuckGoSource:
         findings: list[dict[str, Any]] = []
 
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
 
             with DDGS() as ddgs:
                 results = list(ddgs.text(query, max_results=limit))

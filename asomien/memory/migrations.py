@@ -117,6 +117,16 @@ CREATE TABLE IF NOT EXISTS events (
     consumed_at DATETIME
 );
 
+CREATE TABLE IF NOT EXISTS creative_rules (
+    id TEXT PRIMARY KEY,
+    rule_text TEXT NOT NULL,
+    confidence REAL DEFAULT 0.8,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_validated DATETIME,
+    decay_rate REAL DEFAULT 0.05,
+    is_active BOOLEAN DEFAULT 1
+);
+
 CREATE INDEX IF NOT EXISTS idx_research_nodes_topic ON research_nodes(topic_id);
 CREATE INDEX IF NOT EXISTS idx_research_nodes_active ON research_nodes(is_active, expiry);
 CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);

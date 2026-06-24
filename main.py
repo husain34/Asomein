@@ -68,8 +68,9 @@ def main():
         
         # Instantiate Agents and Adapters
         from asomien.config.settings import settings
-        from asomien.platforms.threads_adapter import ThreadsAdapter
+        from asomien.platforms.bluesky_adapter import BlueskyAdapter
         from asomien.agents.content_agent import ContentAgent
+        from asomien.agents.creative_agent import CreativeAgent
         from asomien.agents.critic_agent import CriticAgent
         from asomien.agents.engagement_agent import EngagementAgent
         from asomien.agents.research_agent import ResearchAgent
@@ -78,34 +79,36 @@ def main():
         from asomien.research.sources.ddg_source import DuckDuckGoSource
         from asomien.research.sources.tumblr_source import TumblrRSSSource
         from asomien.research.sources.knowyourmeme_source import KnowYourMemeSource
-        from asomien.research.sources.threads_keyword_source import ThreadsKeywordSource
+        from asomien.research.sources.bluesky_keyword_source import BlueskyKeywordSource
         
-        adapter = ThreadsAdapter(
-            access_token=settings.threads_access_token,
-            user_id=settings.threads_user_id
+        adapter = BlueskyAdapter(
+            handle=settings.bluesky_handle,
+            app_password=settings.bluesky_app_password
         )
         from asomien.llm.client import NIMClient
         nim_client = NIMClient(api_key=settings.nvidia_nim_api_key)
         content_agent = ContentAgent(memory=memory, llm_client=nim_client)
+        creative_agent = CreativeAgent(memory=memory, llm_client=nim_client)
         critic_agent = CriticAgent(memory=memory, llm_client=nim_client)
         engagement_agent = EngagementAgent(adapter=adapter, memory=memory)
         
         ddg_source = DuckDuckGoSource()
         tumblr_source = TumblrRSSSource()
         kym_source = KnowYourMemeSource()
-        threads_source = ThreadsKeywordSource(access_token=settings.threads_access_token)
+        bluesky_source = BlueskyKeywordSource(handle=settings.bluesky_handle, app_password=settings.bluesky_app_password)
 
         research_agent = ResearchAgent(
             memory=memory,
             ddg_source=ddg_source,
             tumblr_source=tumblr_source,
             kym_source=kym_source,
-            threads_source=threads_source
+            bluesky_source=bluesky_source
         )
         analytics_agent = AnalyticsAgent(adapter=adapter)
 
         orchestrator = MasterOrchestrator(
             content_agent=content_agent,
+            creative_agent=creative_agent,
             critic_agent=critic_agent,
             research_agent=research_agent,
             engagement_agent=engagement_agent,
@@ -142,8 +145,9 @@ def main():
         
         memory = MemoryEngine()
         from asomien.config.settings import settings
-        from asomien.platforms.threads_adapter import ThreadsAdapter
+        from asomien.platforms.bluesky_adapter import BlueskyAdapter
         from asomien.agents.content_agent import ContentAgent
+        from asomien.agents.creative_agent import CreativeAgent
         from asomien.agents.critic_agent import CriticAgent
         from asomien.agents.engagement_agent import EngagementAgent
         from asomien.agents.research_agent import ResearchAgent
@@ -152,34 +156,36 @@ def main():
         from asomien.research.sources.ddg_source import DuckDuckGoSource
         from asomien.research.sources.tumblr_source import TumblrRSSSource
         from asomien.research.sources.knowyourmeme_source import KnowYourMemeSource
-        from asomien.research.sources.threads_keyword_source import ThreadsKeywordSource
+        from asomien.research.sources.bluesky_keyword_source import BlueskyKeywordSource
         
-        adapter = ThreadsAdapter(
-            access_token=settings.threads_access_token,
-            user_id=settings.threads_user_id
+        adapter = BlueskyAdapter(
+            handle=settings.bluesky_handle,
+            app_password=settings.bluesky_app_password
         )
         from asomien.llm.client import NIMClient
         nim_client = NIMClient(api_key=settings.nvidia_nim_api_key)
         content_agent = ContentAgent(memory=memory, llm_client=nim_client)
+        creative_agent = CreativeAgent(memory=memory, llm_client=nim_client)
         critic_agent = CriticAgent(memory=memory, llm_client=nim_client)
         engagement_agent = EngagementAgent(adapter=adapter, memory=memory)
         
         ddg_source = DuckDuckGoSource()
         tumblr_source = TumblrRSSSource()
         kym_source = KnowYourMemeSource()
-        threads_source = ThreadsKeywordSource(access_token=settings.threads_access_token)
+        bluesky_source = BlueskyKeywordSource(handle=settings.bluesky_handle, app_password=settings.bluesky_app_password)
 
         research_agent = ResearchAgent(
             memory=memory,
             ddg_source=ddg_source,
             tumblr_source=tumblr_source,
             kym_source=kym_source,
-            threads_source=threads_source
+            bluesky_source=bluesky_source
         )
         analytics_agent = AnalyticsAgent(adapter=adapter)
 
         orchestrator = MasterOrchestrator(
             content_agent=content_agent,
+            creative_agent=creative_agent,
             critic_agent=critic_agent,
             research_agent=research_agent,
             engagement_agent=engagement_agent,

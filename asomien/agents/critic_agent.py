@@ -131,6 +131,78 @@ class CriticAgent(BaseAgent):
         logger.info("[CriticAgent] Invoked (no autonomous loop).")
         self.stop()
 
+    def analyze_weekly_performance(self, metrics_db_path: str = "data/metrics.db", memory_db_path: str = "data/memory.db", directives_db_path: str = "data/directives.db") -> None:
+        """Phase 8: Post-Hoc Reflection. Analyze top posts and generate new directives."""
+        if not self.llm_client:
+            logger.warning("[CriticAgent] No LLM client provided. Cannot run reflection.")
+            return
+
+        self.log_action("analyze_weekly_performance", "Fetching top posts for reflection.")
+        try:
+            import sqlite3
+            import uuid
+            from datetime import datetime, timezone
+            
+            # 1. Fetch top 5 posts from metrics
+            with sqlite3.connect(metrics_db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                rows = conn.execute(
+                    "SELECT post_id, creator_engagement_score, likes, replies, reposts FROM post_metrics ORDER BY creator_engagement_score DESC LIMIT 5"
+                ).fetchall()
+            
+            if not rows:
+                logger.info("[CriticAgent] No metrics found for reflection.")
+                return
+
+            # 2. Fetch content from memory
+            top_posts = []
+            with sqlite3.connect(memory_db_path) as mem_conn:
+                mem_conn.row_factory = sqlite3.Row
+                for row in rows:
+                    post_row = mem_conn.execute("SELECT content FROM posts WHERE id = ?", (row["post_id"],)).fetchone()
+                    if post_row:
+                        top_posts.append({
+                            "content": post_row["content"],
+                            "score": row["creator_engagement_score"],
+                            "likes": row["likes"],
+                            "replies": row["replies"]
+                        })
+
+            if not top_posts:
+                return
+
+            # 3. Generate Reflection via LLM
+            prompt = (
+                "You are the internal Critic for an autonomous Gen-Z persona bot.\\n"
+                "Here are the top performing posts of the week based on engagement score:\\n\\n"
+            )
+            for p in top_posts:
+                prompt += f"- POST: \\\"{p['content']}\\\" (Score: {p['score']:.2f}, Likes: {p['likes']}, Replies: {p['replies']})\\n"
+            
+            prompt += (
+                "\\nBased on these successful posts, extract 1 extremely concise, hard rule (directive) "
+                "about what topics, vocabulary, or humor styles the bot should focus on next week. "
+                "Output ONLY the rule, nothing else. Start with 'Focus on...'"
+            )
+
+            reflection = self.llm_client.generate(prompt=prompt, system_prompt="You are a strict analytics engine.", temperature=0.7)
+            if not reflection:
+                return
+
+            reflection_clean = reflection.strip().strip('"').strip("'")
+            self.log_action("generated_directive", f"New directive: {reflection_clean}")
+
+            # 4. Save to directives.db
+            with sqlite3.connect(directives_db_path) as dir_conn:
+                dir_conn.execute(
+                    "INSERT INTO directives (id, directive_type, content, priority, status, start_time) VALUES (?, ?, ?, ?, ?, ?)",
+                    (str(uuid.uuid4()), "content_rule", reflection_clean, 8, "active", datetime.now(timezone.utc).isoformat())
+                )
+                dir_conn.commit()
+
+        except Exception as e:
+            logger.error(f"[CriticAgent] Reflection failed: {e}")
+
     # ── Main API ──────────────────────────────────────────────────────────────
 
     def pre_publish_critique(self, draft: str) -> CritiqueScore:
@@ -660,7 +732,7 @@ class CriticAgent(BaseAgent):
             from asomien.llm.prompts.reflection_prompts import REFLECTION_SYSTEM_PROMPT
             import json
             
-            context_str = "\n".join([f"- Post: {p.get('content', '')}" for p in recent_posts])
+            context_str = "\n".join([f"- Post: {p.get('content', '')} | Views: {p.get('views', 0)} | Likes: {p.get('likes', 0)} | Replies: {p.get('replies', 0)}" for p in recent_posts])
             user_prompt = (
                 f"Recent posts:\n{context_str}\n\n"
                 "Provide ONLY valid JSON. The JSON must have exactly this structure:\n"
