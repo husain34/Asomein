@@ -94,6 +94,21 @@ To prevent the account from being shadowbanned or behaving unnaturally, Asomein 
 
 ---
 
+## Customizing for Other Niches
+
+Asomein provides an incredibly robust, production-ready foundation (handling multi-agent orchestration, database architecture, rate limiting, and memory pruning). If you want to use this engine for a completely different purpose (e.g., a professional finance bot, a customer support agent, or a tech news curator), you can easily do so by modifying the "Content Layer":
+
+1. **The Prompts (`asomien/llm/prompts/`)**:
+   All prompt templates are currently hardcoded with instructions to act like an "unhinged, chronically online Gen Z creator". You will need to rewrite these prompts to fit your desired persona.
+2. **The Research Sources (`asomien/research/sources/`)**:
+   The `ResearchAgent` is wired to scrape meme subreddits, Tumblr pop culture feeds, and KnowYourMeme. Point these scrapers to sources relevant to your niche (e.g., HackerNews, financial blogs, or niche subreddits).
+3. **The Database Rules**:
+   Update the `rules` and `personality_traits` tables in your SQLite database to match your new persona. For instance, you would likely want to remove existing hardcoded rules like `lowercase-only` or `gen-z-slang`.
+4. **The Platform Adapter**:
+   The system currently uses the `BlueskyAdapter` (`asomien/platforms/bluesky_adapter.py`) to interface with the AT Protocol. To post on Twitter/X, LinkedIn, or Threads, you will need to create a new adapter subclassing `BaseAdapter`.
+
+---
+
 ## Setup & Deployment
 
 1. **Environment Config:** 
