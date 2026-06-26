@@ -10,7 +10,7 @@ import logging
 import random
 import sqlite3
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from asomien.agents.base_agent import BaseAgent
@@ -49,7 +49,8 @@ class CreativeAgent(BaseAgent):
                             INSERT INTO creative_rules (id, rule_text, confidence, created_at, is_active)
                             VALUES (?, ?, 0.8, ?, 1)
                             """,
-                            (str(uuid.uuid4()), rule, datetime.now().isoformat())
+                            # FIX BUG-08: Use timezone-aware UTC datetime.
+                            (str(uuid.uuid4()), rule, datetime.now(timezone.utc).isoformat())
                         )
         except Exception as e:
             logger.error("[CreativeAgent] Failed to seed rules: %s", e)
@@ -120,14 +121,16 @@ class CreativeAgent(BaseAgent):
             
         try:
             lessons = reflection.get("new_rules", [])
-            for rule in lessons:
-                with sqlite3.connect(self.memory.db_path) as conn:
+            # FIX BUG-07: Open one connection for all rules (atomic, faster).
+            # FIX BUG-08: Use timezone-aware UTC datetime.
+            with sqlite3.connect(self.memory.db_path) as conn:
+                for rule in lessons:
                     conn.execute(
                         """
                         INSERT INTO creative_rules (id, rule_text, confidence, created_at, is_active)
                         VALUES (?, ?, 0.6, ?, 1)
                         """,
-                        (str(uuid.uuid4()), rule, datetime.now().isoformat())
+                        (str(uuid.uuid4()), rule, datetime.now(timezone.utc).isoformat())
                     )
         except Exception as e:
             logger.error("[CreativeAgent] Failed to update creative rules: %s", e)
@@ -140,17 +143,19 @@ class CreativeAgent(BaseAgent):
             
         try:
             from datetime import timedelta
-            now_iso = datetime.now() - timedelta(days=7)
-            
+            # FIX BUG-06: Use timezone-aware UTC datetime so the comparison
+            # against stored UTC ISO strings works correctly.
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+
             with sqlite3.connect(self.memory.db_path) as conn:
                 conn.execute(
                     """
                     UPDATE creative_rules
                     SET confidence = MAX(0.1, confidence - decay_rate)
-                    WHERE last_validated IS NOT NULL 
+                    WHERE last_validated IS NOT NULL
                       AND last_validated < ?
                     """,
-                    (now_iso.isoformat(),)
+                    (cutoff,)
                 )
         except Exception as e:
             logger.error("[CreativeAgent] Failed to decay creative rules: %s", e)

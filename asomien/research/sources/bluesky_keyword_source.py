@@ -11,6 +11,7 @@ about these topics right now. We filter for high engagement (viral) posts.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -34,7 +35,7 @@ NICHE_KEYWORDS: list[str] = [
 
 _DEFAULT_FRESHNESS: int = 85
 _RESULTS_PER_KEYWORD: int = 15  # Fetch more to filter for virality
-_MIN_VIRAL_LIKES: int = 10      # Minimum likes to be considered "viral" enough for research
+_MIN_VIRAL_LIKES: int = 50      # Minimum likes to be considered "viral" enough for research
 
 
 class BlueskyKeywordSource:
@@ -64,7 +65,14 @@ class BlueskyKeywordSource:
         self._keywords = keywords or NICHE_KEYWORDS
         
         self.client = Client()
-        self.client.login(self.handle, self.app_password)
+        import time
+        for _ in range(3):
+            try:
+                self.client.login(self.handle, self.app_password)
+                break
+            except Exception as e:
+                logger.warning(f"[BlueskyKeywordSource] Login timeout/error, retrying: {e}")
+                time.sleep(5)
 
     def fetch(
         self,
@@ -136,6 +144,8 @@ class BlueskyKeywordSource:
                 f"{text[:200]}"
             )
 
+            hashtags = re.findall(r'#\w+', text)
+
             return {
                 "source": "bluesky_keyword",
                 "headline": headline,
@@ -151,7 +161,8 @@ class BlueskyKeywordSource:
                     "timestamp": timestamp,
                     "likes": post.like_count,
                     "reposts": post.repost_count,
-                    "replies": post.reply_count
+                    "replies": post.reply_count,
+                    "hashtags": hashtags
                 },
             }
         except Exception as exc:

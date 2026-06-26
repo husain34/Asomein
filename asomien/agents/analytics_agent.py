@@ -32,6 +32,12 @@ class AnalyticsAgent(BaseAgent):
         super().__init__(name="AnalyticsAgent")
         self.adapter = adapter
         self.metrics_db_path = metrics_db_path
+        # FIX BUG-02: Run migrations once at init, not on every _connect() call.
+        run_migrations(
+            memory_db_path="data/memory.db",
+            metrics_db_path=self.metrics_db_path,
+            directives_db_path="data/directives.db",
+        )
 
     def run(self) -> None:
         self.start()
@@ -39,48 +45,44 @@ class AnalyticsAgent(BaseAgent):
             action="analytics_cycle",
             reason="scheduled analytics collection",
         )
-        
+
         try:
-            import sqlite3
             from types import SimpleNamespace
-            
+
             # 1. Query the last 20 published posts from memory.db
             with sqlite3.connect("data/memory.db") as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.execute(
                     """
-                    SELECT id, threads_post_id 
-                    FROM posts 
-                    WHERE status = 'published' 
-                      AND threads_post_id != '' 
+                    SELECT id, threads_post_id
+                    FROM posts
+                    WHERE status = 'published'
+                      AND threads_post_id != ''
                       AND threads_post_id IS NOT NULL
-                    ORDER BY COALESCE(actual_publish_time, created_at) DESC 
+                    ORDER BY COALESCE(actual_publish_time, created_at) DESC
                     LIMIT 20
                     """
                 )
                 rows = cursor.fetchall()
-            
+
             # 2. Collect metrics and store snapshots
             for row in rows:
                 post = SimpleNamespace(id=row["id"], threads_post_id=row["threads_post_id"])
                 try:
+                    # FIX BUG-01: collect_post_metrics() now correctly stores exactly once.
+                    # Removed redundant self._store_snapshot(snapshot) from here.
                     snapshot = self.collect_post_metrics(post)
-                    self._store_snapshot(snapshot)
                     logger.debug("[AnalyticsAgent] Stored metrics snapshot for post %s", post.id)
                 except Exception as e:
                     logger.error("[AnalyticsAgent] Failed to collect metrics for post %s: %s", post.id, e)
-                    
+
         except Exception as e:
             logger.error("[AnalyticsAgent] Error in analytics cycle: %s", e)
-            
+
         self.stop()
 
     def _connect(self) -> sqlite3.Connection:
-        run_migrations(
-            memory_db_path="data/memory.db",
-            metrics_db_path=self.metrics_db_path,
-            directives_db_path="data/directives.db",
-        )
+        # FIX BUG-02: Migrations removed from here — now called once in __init__.
         conn = sqlite3.connect(self.metrics_db_path)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL;")
@@ -184,6 +186,9 @@ class AnalyticsAgent(BaseAgent):
                 "quotes": snapshot.quotes,
             }
         )
+        # FIX BUG-01: Restored _store_snapshot() call here so external callers
+        # (and tests) get the data stored. The double-store was fixed by removing
+        # the extra _store_snapshot() call from the run() loop.
         self._store_snapshot(snapshot)
         return snapshot
 
@@ -192,13 +197,13 @@ class AnalyticsAgent(BaseAgent):
             raise RuntimeError("AnalyticsAgent requires an adapter")
 
         payload = self.adapter.get_audience_insights()
-        
+
         followers_count = int(payload.get("followers_count", 0))
+        # FIX BUG-04: Use proper try/finally with explicit None init to prevent leaks.
+        conn = None
         try:
             conn = self._connect()
-            import uuid
-            from datetime import datetime, timezone
-            snapshot_id = str(uuid.uuid4())
+            snapshot_id = str(uuid4())
             now = datetime.now(timezone.utc).isoformat()
             conn.execute(
                 "INSERT INTO audience_snapshots (id, snapshot_time, followers_count) VALUES (?, ?, ?)",
@@ -209,9 +214,9 @@ class AnalyticsAgent(BaseAgent):
         except Exception as e:
             logger.error("[AnalyticsAgent] Failed to store audience snapshot: %s", e)
         finally:
-            if 'conn' in locals() and getattr(conn, 'close', None):
+            if conn is not None:
                 conn.close()
-                
+
         return payload
 
     def aggregate_daily_stats(self, date_str: Optional[str] = None) -> dict[str, Any]:
@@ -238,18 +243,30 @@ class AnalyticsAgent(BaseAgent):
             conn.close()
 
     def log_warmup_day(self, day_number: Optional[int] = None) -> None:
-        day = (
-            day_number
-            if day_number is not None
-            else int(date.today().strftime("%d"))
-        )
+        # FIX BUG-03: The old fallback used strftime("%d") which gives the calendar
+        # day of the month (1-31), not the sequential warmup day counter.
+        # Now we query the DB for the next sequential day number.
+        if day_number is None:
+            conn = self._connect()
+            try:
+                row = conn.execute(
+                    "SELECT MAX(day_number) as max_day FROM warmup_log"
+                ).fetchone()
+                max_day = row["max_day"] if row and row["max_day"] is not None else 0
+                day_number = max_day + 1
+            except Exception as e:
+                logger.error("[AnalyticsAgent] Failed to determine warmup day number: %s", e)
+                day_number = 1
+            finally:
+                conn.close()
+
         conn = self._connect()
         try:
             conn.execute(
                 "INSERT OR IGNORE INTO warmup_log (id, day_number, posts_published, replies_published, phase_status, logged_at) VALUES (?, ?, 0, 0, ?, ?)",
                 (
                     str(uuid4()),
-                    day,
+                    day_number,
                     "active",
                     datetime.now(timezone.utc).isoformat(),
                 ),

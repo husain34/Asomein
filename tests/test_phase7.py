@@ -44,12 +44,19 @@ class StubThreadsAdapter:
     def __init__(self, mentions=None):
         self.mentions = mentions or []
         self.replies_sent = []
+        self.client = MagicMock()
 
-    def get_mentions(self):
+    def get_post_replies(self, post_id):
         return self.mentions
 
-    def reply(self, thread_id, text):
-        self.replies_sent.append((thread_id, text))
+    def publish_reply(self, text, parent_post_id):
+        self.replies_sent.append((parent_post_id, text))
+        
+    def get_followers(self, limit=20):
+        return []
+        
+    def search_global_posts(self, query, limit=5):
+        return []
 
 
 @pytest.mark.skipif(not HAS_SENTENCE_TRANSFORMERS, reason="sentence-transformers not installed")
@@ -89,6 +96,13 @@ def test_persona_injection_and_constraint_enforcement(mock_search, engine):
     adapter = StubThreadsAdapter(mentions=[{"id": "m1", "text": "how do you stay productive?"}])
     agent = EngagementAgent(adapter=adapter, memory=engine)
     
+    # Insert a fake published post so _process_replies has a post to check
+    import datetime
+    engine.store(PostNode(
+        content="hello", post_type="text", is_reply=False, 
+        threads_post_id="p1", status="published", created_at=datetime.datetime.now().isoformat()
+    ))
+    
     # Disable delays for fast testing
     agent._human_read_delay = MagicMock()
     agent._human_type_delay = MagicMock()
@@ -101,8 +115,9 @@ def test_persona_injection_and_constraint_enforcement(mock_search, engine):
         agent.monitor_inbound()
         
         # 1. Integration Logic: Verify MemoryEngine context was injected into the LLM call
-        mock_complete.assert_called_once()
-        sent_prompt = mock_complete.call_args[1]["user_prompt"]
+        assert mock_complete.call_count >= 1
+        # The first call is to generate_reply
+        sent_prompt = mock_complete.call_args_list[0][1]["user_prompt"]
         
         assert "just spent 4 hours staring at a wall." in sent_prompt
         assert "how do you stay productive?" in sent_prompt
@@ -135,6 +150,12 @@ def test_engagement_agent_calls_similarity_search(mock_search, engine):
     adapter = StubThreadsAdapter(mentions=[{"id": "m2", "text": "testing search"}])
     agent = EngagementAgent(adapter=adapter, memory=engine)
     
+    import datetime
+    engine.store(PostNode(
+        content="hello", post_type="text", is_reply=False, 
+        threads_post_id="p2", status="published", created_at=datetime.datetime.now().isoformat()
+    ))
+    
     agent._human_read_delay = MagicMock()
     agent._human_type_delay = MagicMock()
     
@@ -144,6 +165,6 @@ def test_engagement_agent_calls_similarity_search(mock_search, engine):
         
         mock_search.assert_called_once_with("testing search", limit=3)
         
-        # Check that 'mocked similar post' made it into the prompt
-        sent_prompt = mock_complete.call_args[1]["user_prompt"]
+        # Check that 'mocked similar post' made it into the prompt (first LLM call)
+        sent_prompt = mock_complete.call_args_list[0][1]["user_prompt"]
         assert "mocked similar post" in sent_prompt

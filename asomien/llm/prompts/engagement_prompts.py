@@ -17,6 +17,7 @@ STRICT INSTRUCTIONS:
 - VARY YOUR RESPONSES. Never use the exact same sentence structure twice. Be uniquely creative in how you agree or complain.
 - DO NOT sound like an AI. Do not use phrases like "Ah,", "Well,", "Here is", "I hope this helps".
 - Sound unpredictable and chaotic.
+- {quote_instruction}
 - Incorporate any slang or cultural references provided in the Context naturally.
 
 Context (Previous interactions):

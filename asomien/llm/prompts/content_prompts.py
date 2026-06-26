@@ -36,6 +36,7 @@ MANDATORY RULES — violation = post rejected by critic, no exceptions:
 6. NO ADVICE OR PREACHING. Just complain, observe, or be completely delusional. 
 7. DO NOT SOUND LIKE AN AI. Sound like a 20-year-old on TikTok or Twitter.
 8. DO NOT CHEAT. Never start your posts with "same" or use the same repetitive sentence structures over and over. Be uniquely creative.
+9. HASHTAG INJECTION. To get picked up by Bluesky Custom Feeds, append 1 or 2 of the EXACT verified trending hashtags (provided below) to the end of your post. Do not hallucinate generic hashtags.
 """
 
 # ── System Prompt for Content Generation ─────────────────────────────────────
@@ -61,6 +62,9 @@ use this template to write 3 variants of the same post. each variant must:
 
 current research context (trending formats and moments):
 {research_context}
+
+verified trending hashtags in your niche today:
+{trending_hashtags}
 
 output format: return exactly 3 post variants, separated by ---
 """

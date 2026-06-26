@@ -269,7 +269,8 @@ class TestSelectHookTemplate:
 
     def test_does_not_repeat_last_used(self):
         """The most recently used template is not returned again."""
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATES
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
         # Run many times to ensure no false positives
         for _ in range(50):
             history = self._make_post_history(["toxic_trait"])
@@ -296,7 +297,9 @@ class TestSelectHookTemplate:
         If all 11 templates are in the look-back window (impossible in production
         but a safety test), the method still returns a valid template — never crashes.
         """
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATE_IDS
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
+        HOOK_TEMPLATE_IDS = [t['id'] for t in HOOK_TEMPLATES]
         # Use more than 5 templates in the window — fills beyond window size
         # The window only looks back 5, so 6+ entries are fine
         recent_many = HOOK_TEMPLATE_IDS[:5]
@@ -314,7 +317,9 @@ class TestSelectHookTemplate:
 
     def test_always_returns_from_known_templates(self):
         """Selected template ID must be from HOOK_TEMPLATE_IDS."""
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATE_IDS
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
+        HOOK_TEMPLATE_IDS = [t['id'] for t in HOOK_TEMPLATES]
         for _ in range(50):
             result = self.agent.select_hook_template(recent_posts=[])
             assert result["id"] in HOOK_TEMPLATE_IDS
@@ -1256,7 +1261,8 @@ class TestContentToCriticPipeline:
         """
         from asomien.agents.content_agent import ContentAgent
         from asomien.agents.critic_agent import CriticAgent
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATES
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
 
         agent = ContentAgent()
         critic = CriticAgent()
@@ -1302,13 +1308,15 @@ class TestHookTemplateRegistry:
     """Verify HOOK_TEMPLATES has all 11 templates with required fields."""
 
     def test_exactly_11_templates(self):
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATES
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
         assert len(HOOK_TEMPLATES) == 11, (
             f"Blueprint specifies 11 hook templates. Got {len(HOOK_TEMPLATES)}"
         )
 
     def test_all_templates_have_required_fields(self):
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATES
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
         for tmpl in HOOK_TEMPLATES:
             assert "id" in tmpl, f"Missing 'id' in template: {tmpl}"
             assert "pattern" in tmpl, f"Missing 'pattern' in template: {tmpl}"
@@ -1316,7 +1324,9 @@ class TestHookTemplateRegistry:
             assert "reply_trigger" in tmpl, f"Missing 'reply_trigger' in template: {tmpl}"
 
     def test_required_template_ids_present(self):
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATE_IDS
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
+        HOOK_TEMPLATE_IDS = [t['id'] for t in HOOK_TEMPLATES]
         required = [
             "toxic_trait", "not_to_be_dramatic", "feminine_urge",
             "okay_but_why", "who_needs_to_hear", "ai_self_aware",
@@ -1329,7 +1339,8 @@ class TestHookTemplateRegistry:
 
     def test_all_template_examples_are_lowercase(self):
         """All example posts are lowercase (persona compliance)."""
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATES
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
         for tmpl in HOOK_TEMPLATES:
             example = tmpl["example"]
             assert example == example.lower(), (
@@ -1337,14 +1348,17 @@ class TestHookTemplateRegistry:
             )
 
     def test_all_template_examples_under_500_chars(self):
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATES
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
         for tmpl in HOOK_TEMPLATES:
             assert len(tmpl["example"]) <= 500, (
                 f"Template '{tmpl['id']}' example is over 500 chars"
             )
 
     def test_hook_template_map_matches_list(self):
-        from asomien.llm.prompts.content_prompts import HOOK_TEMPLATE_MAP, HOOK_TEMPLATES
+        from asomien.llm.prompts.content_prompts import load_templates
+        HOOK_TEMPLATES = load_templates()
+        HOOK_TEMPLATE_MAP = {t['id']: t for t in HOOK_TEMPLATES}
         for tmpl in HOOK_TEMPLATES:
             assert tmpl["id"] in HOOK_TEMPLATE_MAP
             assert HOOK_TEMPLATE_MAP[tmpl["id"]] is tmpl

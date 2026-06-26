@@ -76,6 +76,7 @@ class ResearchAgent(BaseAgent):
         ddg_source: Optional[DuckDuckGoSource] = None,
         aggregator: Optional[ResearchAggregator] = None,
         topic_id: Optional[str] = None,
+        llm_client: Optional[NIMClient] = None,
     ) -> None:
         super().__init__(name="ResearchAgent")
         self.memory = memory
@@ -86,16 +87,29 @@ class ResearchAgent(BaseAgent):
         self.ddg_source = ddg_source
         self.aggregator = aggregator or ResearchAggregator()
         self.topic_id = topic_id
-        self.llm_client = NIMClient()
+        # FIX BUG-20: Accept llm_client as an optional constructor parameter,
+        # consistent with all other agents. If not provided, instantiate from
+        # settings (which reads NVIDIA_NIM_API_KEY from the environment).
+        # Previously NIMClient() was always created here without passing api_key,
+        # which was inconsistent with main.py always passing api_key= explicitly.
+        if llm_client is not None:
+            self.llm_client = llm_client
+        else:
+            try:
+                from asomien.config.settings import settings
+                self.llm_client = NIMClient(api_key=settings.nvidia_nim_api_key)
+            except Exception:
+                self.llm_client = NIMClient()  # fallback: reads env var internally
 
-    # ── Lifecycle ─────────────────────────────────────────────────────────────
-
-    def run(self) -> int:
+    # FIX BUG-19: BaseAgent.run() is annotated -> None. Overriding with -> int
+    # violates the Liskov Substitution Principle and breaks mypy/type checkers.
+    # We store the count as self.last_stored_count so callers can read it after run().
+    def run(self) -> None:
         """
         Execute one full research cycle.
 
         Calls all available sources, aggregates findings, stores them.
-        Returns the count of new ResearchNodes stored.
+        The count of stored nodes is available at self.last_stored_count after the call.
 
         Safe to call even if some sources are None (they are skipped).
         """
@@ -107,24 +121,25 @@ class ResearchAgent(BaseAgent):
 
         all_findings: list[dict[str, Any]] = []
 
-        # ── Meme radar: Reddit hot/rising ─────────────────────────────────────
+        # ── Meme radar: Reddit hot/rising ───────────────────────────────────
         meme_findings = self.scan_trending_meme_formats()
         all_findings.extend(meme_findings)
 
-        # ── Pop culture radar: Tumblr + KYM ──────────────────────────────────
+        # ── Pop culture radar: Tumblr + KYM ────────────────────────────
         pop_findings = self.scan_pop_culture_moments()
         all_findings.extend(pop_findings)
 
-        # ── Bluesky keyword search ────────────────────────────────────────────
+        # ── Bluesky keyword search ───────────────────────────────────
         bluesky_findings = self.keyword_search_bluesky()
         all_findings.extend(bluesky_findings)
 
-        # ── Gen Z Slang Dictionary Fetch ──────────────────────────────────────
+        # ── Gen Z Slang Dictionary Fetch ────────────────────────────
         slang_findings = self.fetch_latest_slang()
         all_findings.extend(slang_findings)
 
-        # ── Aggregate + store ─────────────────────────────────────────────────
+        # ── Aggregate + store ───────────────────────────────────────
         stored_count = self.store_findings(all_findings)
+        self.last_stored_count = stored_count
 
         self.log_action(
             action="research_cycle_complete",
@@ -132,12 +147,12 @@ class ResearchAgent(BaseAgent):
             outcome=f"{stored_count} nodes stored from {len(all_findings)} raw findings",
         )
         self.stop()
-        return stored_count
 
     def stop(self) -> None:
-        """Mark the agent as stopped."""
-        self._running = False
-        logger.info("[ResearchAgent] Stopped.")
+        """Mark the agent as stopped. Calls super().stop() for base class compliance."""
+        # FIX BUG-24: Always call super().stop() to ensure _running flag is cleared
+        # via the base class and any future base class cleanup is honoured.
+        super().stop()
 
     # ── Source methods ────────────────────────────────────────────────────────
 

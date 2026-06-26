@@ -34,6 +34,94 @@ def handle_shutdown(signum, frame, orchestrator, apscheduler):
             logger.error("Error shutting down orchestrator: %s", e)
     sys.exit(0)
 
+
+def _build_system():
+    """
+    FIX BUG-23: Extract shared system-building logic into a single factory function.
+    Previously the --start and --simulate blocks each had ~70 lines of identical
+    agent/adapter/orchestrator setup code. Any future change to init only needs
+    to be made here.
+
+    Returns (orchestrator, scheduler, apscheduler_instance_or_None)
+    """
+    from asomien.memory.migrations import run_migrations
+    from asomien.config.settings import settings
+    from asomien.platforms.bluesky_adapter import BlueskyAdapter
+    from asomien.agents.content_agent import ContentAgent
+    from asomien.agents.creative_agent import CreativeAgent
+    from asomien.agents.critic_agent import CriticAgent
+    from asomien.agents.engagement_agent import EngagementAgent
+    from asomien.agents.research_agent import ResearchAgent
+    from asomien.agents.analytics_agent import AnalyticsAgent
+    from asomien.research.sources.ddg_source import DuckDuckGoSource
+    from asomien.research.sources.tumblr_source import TumblrRSSSource
+    from asomien.research.sources.knowyourmeme_source import KnowYourMemeSource
+    from asomien.research.sources.bluesky_keyword_source import BlueskyKeywordSource
+    from asomien.llm.client import NIMClient
+
+    # FIX BUG-22: Call run_migrations() with no args so all 3 databases
+    # (memory, metrics, directives) are initialized at startup.
+    # Previously only "data/memory.db" was passed, leaving metrics.db and
+    # directives.db un-initialized until AnalyticsAgent._connect() ran.
+    # This caused content_agent.draft_content() to fail when it tried to
+    # read from directives.db before AnalyticsAgent had ever run.
+    run_migrations()
+
+    memory = MemoryEngine()
+
+    adapter = BlueskyAdapter(
+        handle=settings.bluesky_handle,
+        app_password=settings.bluesky_app_password
+    )
+    nim_client = NIMClient(api_key=settings.nvidia_nim_api_key)
+
+    content_agent = ContentAgent(memory=memory, llm_client=nim_client)
+    creative_agent = CreativeAgent(memory=memory, llm_client=nim_client)
+    critic_agent = CriticAgent(memory=memory, llm_client=nim_client)
+    # Pass nim_client so EngagementAgent doesn't create its own NIMClient instance
+    engagement_agent = EngagementAgent(adapter=adapter, memory=memory, llm_client=nim_client)
+
+    ddg_source = DuckDuckGoSource()
+    tumblr_source = TumblrRSSSource()
+    kym_source = KnowYourMemeSource()
+    bluesky_source = BlueskyKeywordSource(
+        handle=settings.bluesky_handle,
+        app_password=settings.bluesky_app_password
+    )
+
+    research_agent = ResearchAgent(
+        memory=memory,
+        ddg_source=ddg_source,
+        tumblr_source=tumblr_source,
+        kym_source=kym_source,
+        bluesky_source=bluesky_source,
+        llm_client=nim_client,
+    )
+    analytics_agent = AnalyticsAgent(adapter=adapter)
+
+    orchestrator = MasterOrchestrator(
+        content_agent=content_agent,
+        creative_agent=creative_agent,
+        critic_agent=critic_agent,
+        research_agent=research_agent,
+        engagement_agent=engagement_agent,
+        analytics_agent=analytics_agent,
+        adapter=adapter,
+        memory=memory
+    )
+
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        apscheduler = BackgroundScheduler()
+    except ImportError:
+        apscheduler = None
+        logger.warning("APScheduler not available, running without scheduled jobs.")
+
+    scheduler = SchedulerManager(orchestrator=orchestrator, scheduler=apscheduler)
+
+    return orchestrator, scheduler, apscheduler
+
+
 def main():
     parser = argparse.ArgumentParser(description="Asomien System Controller")
     parser.add_argument("--start", action="store_true", help="Start the master orchestrator daemon")
@@ -42,7 +130,7 @@ def main():
     parser.add_argument("--approve", type=str, metavar="POST_ID", help="Approve a post by ID")
     parser.add_argument("--directive", type=str, metavar="TEXT", help="Add a human directive")
     parser.add_argument("--simulate", action="store_true", help="Force run the core loops immediately for testing")
-    
+
     args = parser.parse_args()
     cli = CLIController()
 
@@ -60,141 +148,26 @@ def main():
 
     if args.start:
         logger.info("Booting Asomien...")
-        
-        from asomien.memory.migrations import run_migrations
-        run_migrations("data/memory.db")
-        
-        memory = MemoryEngine()
-        
-        # Instantiate Agents and Adapters
-        from asomien.config.settings import settings
-        from asomien.platforms.bluesky_adapter import BlueskyAdapter
-        from asomien.agents.content_agent import ContentAgent
-        from asomien.agents.creative_agent import CreativeAgent
-        from asomien.agents.critic_agent import CriticAgent
-        from asomien.agents.engagement_agent import EngagementAgent
-        from asomien.agents.research_agent import ResearchAgent
-        from asomien.agents.analytics_agent import AnalyticsAgent
-        
-        from asomien.research.sources.ddg_source import DuckDuckGoSource
-        from asomien.research.sources.tumblr_source import TumblrRSSSource
-        from asomien.research.sources.knowyourmeme_source import KnowYourMemeSource
-        from asomien.research.sources.bluesky_keyword_source import BlueskyKeywordSource
-        
-        adapter = BlueskyAdapter(
-            handle=settings.bluesky_handle,
-            app_password=settings.bluesky_app_password
-        )
-        from asomien.llm.client import NIMClient
-        nim_client = NIMClient(api_key=settings.nvidia_nim_api_key)
-        content_agent = ContentAgent(memory=memory, llm_client=nim_client)
-        creative_agent = CreativeAgent(memory=memory, llm_client=nim_client)
-        critic_agent = CriticAgent(memory=memory, llm_client=nim_client)
-        engagement_agent = EngagementAgent(adapter=adapter, memory=memory)
-        
-        ddg_source = DuckDuckGoSource()
-        tumblr_source = TumblrRSSSource()
-        kym_source = KnowYourMemeSource()
-        bluesky_source = BlueskyKeywordSource(handle=settings.bluesky_handle, app_password=settings.bluesky_app_password)
 
-        research_agent = ResearchAgent(
-            memory=memory,
-            ddg_source=ddg_source,
-            tumblr_source=tumblr_source,
-            kym_source=kym_source,
-            bluesky_source=bluesky_source
-        )
-        analytics_agent = AnalyticsAgent(adapter=adapter)
+        orchestrator, scheduler, apscheduler = _build_system()
 
-        orchestrator = MasterOrchestrator(
-            content_agent=content_agent,
-            creative_agent=creative_agent,
-            critic_agent=critic_agent,
-            research_agent=research_agent,
-            engagement_agent=engagement_agent,
-            analytics_agent=analytics_agent,
-            adapter=adapter,
-            memory=memory
-        )
-        try:
-            from apscheduler.schedulers.background import BackgroundScheduler
-            apscheduler = BackgroundScheduler()
-        except ImportError:
-            apscheduler = None
-            logger.warning("APScheduler not available, running without scheduled jobs.")
-            
-        scheduler = SchedulerManager(orchestrator=orchestrator, scheduler=apscheduler)
-        
         signal.signal(signal.SIGINT, lambda s, f: handle_shutdown(s, f, orchestrator, apscheduler))
         signal.signal(signal.SIGTERM, lambda s, f: handle_shutdown(s, f, orchestrator, apscheduler))
-        
+
         if hasattr(scheduler, "setup_jobs") and apscheduler:
             scheduler.setup_jobs(apscheduler, orchestrator)
-        
+
         if apscheduler:
             apscheduler.start()
-            
+
         orchestrator.start_loop()
         return
 
     if args.simulate:
         logger.info("Booting Asomien in SIMULATION mode...")
-        
-        from asomien.memory.migrations import run_migrations
-        run_migrations("data/memory.db")
-        
-        memory = MemoryEngine()
-        from asomien.config.settings import settings
-        from asomien.platforms.bluesky_adapter import BlueskyAdapter
-        from asomien.agents.content_agent import ContentAgent
-        from asomien.agents.creative_agent import CreativeAgent
-        from asomien.agents.critic_agent import CriticAgent
-        from asomien.agents.engagement_agent import EngagementAgent
-        from asomien.agents.research_agent import ResearchAgent
-        from asomien.agents.analytics_agent import AnalyticsAgent
-        
-        from asomien.research.sources.ddg_source import DuckDuckGoSource
-        from asomien.research.sources.tumblr_source import TumblrRSSSource
-        from asomien.research.sources.knowyourmeme_source import KnowYourMemeSource
-        from asomien.research.sources.bluesky_keyword_source import BlueskyKeywordSource
-        
-        adapter = BlueskyAdapter(
-            handle=settings.bluesky_handle,
-            app_password=settings.bluesky_app_password
-        )
-        from asomien.llm.client import NIMClient
-        nim_client = NIMClient(api_key=settings.nvidia_nim_api_key)
-        content_agent = ContentAgent(memory=memory, llm_client=nim_client)
-        creative_agent = CreativeAgent(memory=memory, llm_client=nim_client)
-        critic_agent = CriticAgent(memory=memory, llm_client=nim_client)
-        engagement_agent = EngagementAgent(adapter=adapter, memory=memory)
-        
-        ddg_source = DuckDuckGoSource()
-        tumblr_source = TumblrRSSSource()
-        kym_source = KnowYourMemeSource()
-        bluesky_source = BlueskyKeywordSource(handle=settings.bluesky_handle, app_password=settings.bluesky_app_password)
 
-        research_agent = ResearchAgent(
-            memory=memory,
-            ddg_source=ddg_source,
-            tumblr_source=tumblr_source,
-            kym_source=kym_source,
-            bluesky_source=bluesky_source
-        )
-        analytics_agent = AnalyticsAgent(adapter=adapter)
+        orchestrator, scheduler, _ = _build_system()
 
-        orchestrator = MasterOrchestrator(
-            content_agent=content_agent,
-            creative_agent=creative_agent,
-            critic_agent=critic_agent,
-            research_agent=research_agent,
-            engagement_agent=engagement_agent,
-            analytics_agent=analytics_agent,
-            adapter=adapter,
-            memory=memory
-        )
-        scheduler = SchedulerManager(orchestrator=orchestrator)
-        
         logger.info("--- FORCING RESEARCH CYCLE ---")
         scheduler.job_research()
         logger.info("--- FORCING ENGAGEMENT CYCLE ---")
@@ -203,7 +176,7 @@ def main():
         scheduler.job_content_and_publish()
         logger.info("--- FORCING REFLECTION CYCLE ---")
         scheduler.job_reflect()
-        
+
         logger.info("Simulation complete! Check logs/actions.log or your dashboard.")
         return
 

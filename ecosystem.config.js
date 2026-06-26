@@ -6,5 +6,12 @@ module.exports = {
     args: "--start",
     autorestart: true,
     watch: false
+  },
+  {
+    name   : "asomien-dashboard",
+    script : "web_dashboard/server.py",
+    interpreter: "venv/Scripts/pythonw.exe",
+    autorestart: true,
+    watch: false
   }]
 }

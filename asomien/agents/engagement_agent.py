@@ -24,11 +24,46 @@ class EngagementAgent(BaseAgent):
         adapter: Optional[Any] = None,
         personality_engine: Optional[Any] = None,
         memory: Optional[Any] = None,
+        llm_client: Optional[Any] = None,
     ) -> None:
         super().__init__(name="EngagementAgent")
         self.adapter = adapter
         self.personality_engine = personality_engine
         self.memory = memory
+        # FIX BUG-18: Thread-safe lazy initialization.
+        # We store the explicit llm_client if passed (allows test injection / mocking).
+        # If not provided, we store the api_key and resolve on first use under a lock.
+        # This avoids the race condition where two concurrent APScheduler threads
+        # both find llm_client=None and create two NIMClient instances simultaneously.
+        import threading
+        self._llm_lock = threading.Lock()
+        self._llm_client_explicit = llm_client  # None means "resolve lazily"
+        try:
+            from asomien.config.settings import settings
+            self._nim_api_key = settings.nvidia_nim_api_key
+        except Exception:
+            self._nim_api_key = None
+
+    @property
+    def llm_client(self):
+        """Thread-safe lazy accessor for the NIM client."""
+        if self._llm_client_explicit is not None:
+            return self._llm_client_explicit
+        with self._llm_lock:
+            # Double-checked locking: re-check after acquiring lock
+            if self._llm_client_explicit is not None:
+                return self._llm_client_explicit
+            try:
+                from asomien.llm.client import NIMClient
+                self._llm_client_explicit = NIMClient(api_key=self._nim_api_key)
+            except Exception:
+                self._llm_client_explicit = None
+        return self._llm_client_explicit
+
+    @llm_client.setter
+    def llm_client(self, value):
+        """Allow tests and external code to set/override the client directly."""
+        self._llm_client_explicit = value
 
     def _human_read_delay(self) -> None:
         """Sleep for 45-180s to simulate reading time."""
@@ -42,10 +77,10 @@ class EngagementAgent(BaseAgent):
         logger.debug("[%s] Sleeping for %.2f seconds (_human_type_delay)", self.name, delay)
         time.sleep(delay)
 
-    def generate_reply(self, reply_text: str) -> str:
+    def generate_reply(self, reply_text: str, is_quote: bool = False) -> str:
         """Use the current PersonaRules from the database to generate a reply."""
         self.log_action("generate_reply", f"Input text: {reply_text}")
-        
+
         context_str = "None"
         if self.memory:
             # Semantic search for context (last 3 interactions with user/topic)
@@ -55,36 +90,34 @@ class EngagementAgent(BaseAgent):
                     context_str = "\n".join([f"- {p.get('content', '')}" for p in similar_posts])
             except Exception as e:
                 logger.warning("[%s] Similarity search failed: %s", self.name, e)
-                
+
         try:
             from asomien.llm.prompts.engagement_prompts import ENGAGEMENT_REPLY_PROMPT
-            
+
             # Format the prompt
-            user_prompt = ENGAGEMENT_REPLY_PROMPT.format(context=context_str, user_reply=reply_text)
-            
-            if not getattr(self, "llm_client", None):
-                from asomien.llm.client import NIMClient
-                from asomien.config.settings import settings
-                self.llm_client = NIMClient(api_key=settings.nvidia_nim_api_key)
-                
-            response = self.llm_client.complete(
-                system_prompt="You are the Chronically Online AI persona.",
-                user_prompt=user_prompt,
-                temperature=0.85,
-                max_tokens=150
-            )
-            
-            if response:
-                return response.strip()
-                
+            quote_instruction = "You are writing a Quote-Post caption for your followers to see. Broadcast your chaotic thought to the timeline rather than talking directly to the user." if is_quote else "You are talking directly to the user in their comment section."
+            user_prompt = ENGAGEMENT_REPLY_PROMPT.format(context=context_str, user_reply=reply_text, quote_instruction=quote_instruction)
+
+            # FIX BUG-18: llm_client is now initialized in __init__ — no lazy init here.
+            if self.llm_client:
+                response = self.llm_client.complete(
+                    system_prompt="You are the Chronically Online AI persona.",
+                    user_prompt=user_prompt,
+                    temperature=0.85,
+                    max_tokens=150
+                )
+
+                if response:
+                    return response.strip()
+
         except Exception as e:
             logger.error("[%s] LLM generation failed: %s", self.name, e)
-            
+
         if self.personality_engine:
             # Here we would normally query the LLM with the personality engine's prompt.
             # Returning a persona-aligned fallback for the test integration.
             return "same tbh."
-        
+
         return "not to be dramatic but same."
 
     def _process_replies(self) -> None:
@@ -129,20 +162,27 @@ class EngagementAgent(BaseAgent):
                 self._human_read_delay()
                 reply_text = self.generate_reply(mention.get("text", ""))
                 self._human_type_delay()
-                
-                if self.memory:
-                    from asomien.memory.nodes import PostNode
-                    node = PostNode(
-                        content=reply_text,
-                        post_type="reply",
-                        is_reply=True,
-                        reply_to_threads_id=mention.get("id"),
-                        status="published"
-                    )
-                    self.memory.store(node)
-                
-                self.adapter.publish_reply(text=reply_text, parent_post_id=mention.get("id"))
-                logger.info("[%s] Successfully replied to comment %s", self.name, mention.get("id"))
+
+                # FIX BUG-15: Store the PostNode AFTER a successful publish call.
+                # Previously, memory.store() was called with status="published" BEFORE
+                # the API call, meaning a failed publish left a ghost "published" record
+                # that would make the duplicate-reply guard skip this reply forever.
+                try:
+                    self.adapter.publish_reply(text=reply_text, parent_post_id=mention.get("id"))
+                    logger.info("[%s] Successfully replied to comment %s", self.name, mention.get("id"))
+
+                    if self.memory:
+                        from asomien.memory.nodes import PostNode
+                        node = PostNode(
+                            content=reply_text,
+                            post_type="reply",
+                            is_reply=True,
+                            reply_to_threads_id=mention.get("id"),
+                            status="published"
+                        )
+                        self.memory.store(node)
+                except Exception as publish_err:
+                    logger.error("[%s] Failed to publish reply to %s: %s", self.name, mention.get("id"), publish_err)
                 
         except Exception as e:
             logger.error("[%s] Error running cycle: %s", self.name, e)
@@ -177,8 +217,12 @@ class EngagementAgent(BaseAgent):
                 did = row['did']
                 try:
                     profile = self.adapter.client.get_profile(did)
-                    # profile.viewer.followed_by is the URI if they follow us, or None
-                    if profile.viewer is None or not profile.viewer.followed_by:
+                    # FIX BUG-17: Use getattr with a default to safely access profile.viewer.followed_by.
+                    # Accessing .followed_by directly after a None check on .viewer is not safe
+                    # if the SDK version doesn't guarantee the attribute exists.
+                    viewer = profile.viewer
+                    followed_by = getattr(viewer, 'followed_by', None) if viewer is not None else None
+                    if not followed_by:
                         logger.info("[%s] User %s did not follow back after 30 days (or unfollowed). Unfollowing.", self.name, did)
                         if self.adapter.unfollow(did):
                             with sqlite3.connect(self.memory.db_path) as conn:
@@ -197,9 +241,15 @@ class EngagementAgent(BaseAgent):
             followers = self.adapter.get_followers(limit=20)
             for f in followers:
                 if f.get("viewer_following") is None:
+                    # FIX BUG-16: Guard against None DID before calling _record_follow.
+                    # f.get("did") returns None if the key is absent; passing None to
+                    # adapter.follow() or the DB INSERT would cause silent bad data.
+                    if not f.get("did"):
+                        logger.warning("[%s] Skipping follow: missing 'did' in follower record.", self.name)
+                        continue
                     # Apply small delay so we don't spam follows all at once
                     time.sleep(random.uniform(2.0, 5.0))
-                    self._record_follow(f.get("did"))
+                    self._record_follow(f["did"])
         except Exception as e:
             logger.error("[%s] Error processing follow backs: %s", self.name, e)
 
@@ -208,11 +258,11 @@ class EngagementAgent(BaseAgent):
         try:
             if not hasattr(self.adapter, "search_global_posts"):
                 return
-                
-            if not getattr(self, "llm_client", None):
-                from asomien.llm.client import NIMClient
-                from asomien.config.settings import settings
-                self.llm_client = NIMClient(api_key=settings.nvidia_nim_api_key)
+
+            # FIX BUG-18: llm_client is now initialized in __init__ — no lazy init here.
+            if not self.llm_client:
+                logger.warning("[%s] No LLM client available for global search scoring.", self.name)
+                return
 
             # Organically generate a search keyword via LLM
             keyword_prompt = (
@@ -261,7 +311,9 @@ class EngagementAgent(BaseAgent):
                     "Score it from 0 to 10 on how well it fits the Gen-Z, relatable, brainrot, chronically-online aesthetic. "
                     "CRITICAL RULES: If the post is NOT in English, YOU MUST SCORE IT A 0. "
                     "If the post mentions politics, news, sports, tech reviews, or serious global events, YOU MUST SCORE IT A 0. "
-                    "It MUST be a personal complaint, sarcastic joke, or relatable life observation to score above a 7. "
+                    "Score 1-5: Boring, corporate, or irrelevant. "
+                    "Score 6-8: A decent observation or relatable complaint. Good for a normal reply. "
+                    "Score 9-10: A massive, highly-relatable banger with high viral potential. Reserve for top-tier content. "
                     "Only reply with a JSON object like {\"score\": 8, \"reason\": \"very relatable personal complaint\"}"
                 )
                 response = self.llm_client.complete(
@@ -283,34 +335,38 @@ class EngagementAgent(BaseAgent):
                 except Exception:
                     score = 0
 
-                if score >= 7 and likes_given < 3:
+                if score >= 6 and likes_given < 3:
                     self._human_read_delay()
                     self.adapter.like_post(uri=post_uri, cid=post.get("cid"))
                     likes_given += 1
                     
-                    if score >= 9:
-                        if follows_given < 2 and author_did:
-                            self._record_follow(author_did)
-                            follows_given += 1
-                            logger.info("[%s] Organically followed user %s based on high vibe score", self.name, author_did)
+                    if comments_given < 1:
+                        is_quote = score >= 9
+                        reply_text = self.generate_reply(text, is_quote=is_quote)
+                        self._human_type_delay()
                         
-                        if comments_given < 1:
-                            reply_text = self.generate_reply(text)
-                            self._human_type_delay()
-                            
-                            from asomien.memory.nodes import PostNode
-                            node = PostNode(
-                                content=reply_text,
-                                post_type="reply",
-                                is_reply=True,
-                                reply_to_threads_id=post_uri,
-                                status="published"
-                            )
-                            self.memory.store(node)
-                            
+                        from asomien.memory.nodes import PostNode
+                        node = PostNode(
+                            content=reply_text,
+                            post_type="reply",
+                            is_reply=not is_quote,
+                            reply_to_threads_id=post_uri,
+                            status="published"
+                        )
+                        self.memory.store(node)
+                        
+                        if is_quote:
+                            self.adapter.quote_post(text=reply_text, uri=post_uri, cid=post.get("cid"))
+                            logger.info("[%s] Organically QUOTE-POSTED global post %s", self.name, post_uri)
+                            if follows_given < 2 and author_did:
+                                self._record_follow(author_did)
+                                follows_given += 1
+                                logger.info("[%s] Organically followed user %s based on high vibe score", self.name, author_did)
+                        else:
                             self.adapter.publish_reply(text=reply_text, parent_post_id=post_uri)
                             logger.info("[%s] Organically commented on global post %s", self.name, post_uri)
-                            comments_given += 1
+                            
+                        comments_given += 1
 
         except Exception as e:
             logger.error("[%s] Error processing global search: %s", self.name, e)

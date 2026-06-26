@@ -172,20 +172,30 @@ class CriticAgent(BaseAgent):
                 return
 
             # 3. Generate Reflection via LLM
-            prompt = (
-                "You are the internal Critic for an autonomous Gen-Z persona bot.\\n"
-                "Here are the top performing posts of the week based on engagement score:\\n\\n"
+            # FIX BUG-12: Use proper \n (actual newlines) and standard quote escaping.
+            # Previous code used \\n (literal backslash-n) which sent garbled text to the LLM.
+            post_lines = "".join(
+                f'- POST: "{p["content"]}" (Score: {p["score"]:.2f}, Likes: {p["likes"]}, Replies: {p["replies"]})\n'
+                for p in top_posts
             )
-            for p in top_posts:
-                prompt += f"- POST: \\\"{p['content']}\\\" (Score: {p['score']:.2f}, Likes: {p['likes']}, Replies: {p['replies']})\\n"
-            
-            prompt += (
-                "\\nBased on these successful posts, extract 1 extremely concise, hard rule (directive) "
-                "about what topics, vocabulary, or humor styles the bot should focus on next week. "
-                "Output ONLY the rule, nothing else. Start with 'Focus on...'"
+            prompt = (
+                "You are the internal Critic for an autonomous Gen-Z persona bot.\n"
+                "Here are the top performing posts of the week based on engagement score:\n\n"
+                + post_lines
+                + (
+                    "\nBased on these successful posts, extract 1 extremely concise, hard rule (directive) "
+                    "about what topics, vocabulary, or humor styles the bot should focus on next week. "
+                    "Output ONLY the rule, nothing else. Start with 'Focus on...'"
+                )
             )
 
-            reflection = self.llm_client.generate(prompt=prompt, system_prompt="You are a strict analytics engine.", temperature=0.7)
+            # FIX BUG-11: NIMClient exposes .complete(), not .generate().
+            # Correct parameter is user_prompt=, not prompt=.
+            reflection = self.llm_client.complete(
+                system_prompt="You are a strict analytics engine.",
+                user_prompt=prompt,
+                temperature=0.7,
+            )
             if not reflection:
                 return
 
@@ -240,7 +250,7 @@ class CriticAgent(BaseAgent):
                 action="pre_publish_critique_result",
                 reason="hard_gate_failure",
                 outcome=f"rejected: {hard_gate_result}",
-                level="warning",
+                level="info",
             )
             return CritiqueScore.hard_reject(hard_gate_result)
 
@@ -261,7 +271,7 @@ class CriticAgent(BaseAgent):
                 action="pre_publish_critique_result",
                 reason="below_composite_threshold",
                 outcome=reason,
-                level="warning",
+                level="info",
             )
             return CritiqueScore(
                 composite=composite,
@@ -282,7 +292,7 @@ class CriticAgent(BaseAgent):
                     action="pre_publish_critique_result",
                     reason="below_dimension_threshold",
                     outcome=reason,
-                    level="warning",
+                    level="info",
                 )
                 return CritiqueScore(
                     composite=composite,
@@ -506,8 +516,18 @@ class CriticAgent(BaseAgent):
         }
 
         for tmpl_id, openers in _FORMAT_OPENERS.items():
-            if all(op in draft_lower for op in openers) or openers[0] in draft_lower:
-                return 1.0
+            # FIX BUG-14: Use all() consistently for multi-opener formats.
+            # Previous logic used `all(...) or openers[0] in draft_lower` which meant
+            # any single first opener (e.g. "real " with a space) fired a 1.0 score,
+            # producing massive false positives for common words like "real".
+            # Now: single-opener formats use simple `in` check;
+            #      multi-opener formats require ALL openers to match.
+            if len(openers) == 1:
+                if openers[0] in draft_lower:
+                    return 1.0
+            else:
+                if all(op in draft_lower for op in openers):
+                    return 1.0
 
         # Partial match — recognizable internet format but not a core template
         if any(
@@ -687,30 +707,34 @@ class CriticAgent(BaseAgent):
         logger.info("[CriticAgent] Running decay_rules().")
         if not self.memory:
             return
-            
+
         try:
             import sqlite3
-            from datetime import datetime, timedelta
-            now_iso = datetime.now() - timedelta(days=7)
-            
+            from datetime import datetime, timedelta, timezone
+            # FIX BUG-13: Use timezone-aware UTC datetime so the comparison
+            # against stored UTC ISO strings works correctly.
+            # Previous code used datetime.now() (naive) which caused SQLite text
+            # comparison to never match UTC-suffixed timestamps.
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+
             with sqlite3.connect(self.memory.db_path) as conn:
                 conn.execute(
                     """
                     UPDATE rules
                     SET confidence = MAX(0.1, confidence - decay_rate)
-                    WHERE last_validated IS NOT NULL 
+                    WHERE last_validated IS NOT NULL
                       AND last_validated < ?
                     """,
-                    (now_iso.isoformat(),)
+                    (cutoff,)
                 )
-                
+
                 conn.execute(
                     """
                     UPDATE personality_traits
                     SET value = value + (0.5 - value) * 0.1
                     WHERE last_updated < ?
                     """,
-                    (now_iso.isoformat(),)
+                    (cutoff,)
                 )
         except Exception as e:
             logger.error("[CriticAgent] Failed to decay rules: %s", e)

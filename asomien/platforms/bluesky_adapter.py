@@ -22,7 +22,14 @@ class BlueskyAdapter(BasePlatformAdapter):
     ) -> None:
         self.handle = handle
         self.client = Client()
-        self.client.login(handle, app_password)
+        import time
+        for _ in range(3):
+            try:
+                self.client.login(handle, app_password)
+                break
+            except Exception as e:
+                logger.warning(f"[BlueskyAdapter] Login timeout/error, retrying: {e}")
+                time.sleep(5)
 
     def publish_text_post(self, text: str, **kwargs: Any) -> str:
         """Publish a root post. Returns the URI."""
@@ -51,6 +58,18 @@ class BlueskyAdapter(BasePlatformAdapter):
         
         post = self.client.send_post(text=text, reply_to=reply_ref)
         logger.info(f"Published Bluesky reply: {post.uri}")
+        return post.uri
+
+    def quote_post(self, text: str, uri: str, cid: str, **kwargs: Any) -> str:
+        """Publish a quote post embedding an existing post."""
+        embed = models.AppBskyEmbedRecord.Main(
+            record=models.ComAtprotoRepoStrongRef.Main(
+                cid=cid,
+                uri=uri
+            )
+        )
+        post = self.client.send_post(text=text, embed=embed)
+        logger.info(f"Published Bluesky quote post: {post.uri}")
         return post.uri
 
     def delete_post(self, post_id: str, **kwargs: Any) -> bool:

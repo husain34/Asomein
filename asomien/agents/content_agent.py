@@ -5,8 +5,8 @@ Content Agent — the creative engine of the Asomien system.
 
 Responsibilities (blueprint Section 5 / Step 11):
   - generate_post_ideas()      : build idea seeds from memory context
-  - select_hook_template()     : rotate through 11 templates; NO consecutive repeats
-                                  in the last 5 posts
+  - select_hook_template()     : rotate through templates; avoid repeats in the
+                                  last 100 posts (see _CONSECUTIVE_REPEAT_WINDOW)
   - instantiate_hook()         : fill a template pattern with context
   - draft_content()            : produce up to `variant_count` post drafts via LLM
   - draft_reply()              : generate a casual reply to a comment
@@ -17,9 +17,10 @@ Responsibilities (blueprint Section 5 / Step 11):
 
 CRITICAL GUARANTEES:
   1. All output is lowercased before leaving this agent (apply_personality()).
-  2. select_hook_template() never returns the same template that appears in the
-     last 5 hook_template_used values of recent_posts.  If all non-repeating
-     templates are exhausted it picks from the full pool (fallback safety).
+  2. select_hook_template() never returns a template that appears in the
+     last _CONSECUTIVE_REPEAT_WINDOW (100) hook_template_used values of
+     recent_posts.  If all non-repeating templates are exhausted it picks
+     from the full pool (fallback safety).
   3. LLM calls are optional — if no llm_client is provided the agent operates
      in deterministic / test mode using instantiate_hook() directly.
 """
@@ -42,6 +43,8 @@ logger = logging.getLogger(__name__)
 
 # ── Persona constants ──────────────────────────────────────────────────────────
 _MAX_CHARS: int = 500
+# FIX BUG-09: The docstrings previously said "last 5 posts" but the constant
+# has always been 100. The constant is the source of truth — docstrings updated.
 _CONSECUTIVE_REPEAT_WINDOW: int = 100   # look back at last 100 posts for template history
 _DEFAULT_VARIANT_COUNT: int = 3
 
@@ -168,7 +171,8 @@ class ContentAgent(BaseAgent):
                 "cultural_freshness": node.get("cultural_freshness", 50),
                 "template": None, # Templates are resolved later dynamically
             })
-        import random
+        # FIX BUG-10 (cosmetic): Removed redundant `import random` here;
+        # random is already imported at the module level on line 30.
         random.shuffle(research_ideas)
         ideas.extend(research_ideas)
 
@@ -327,6 +331,19 @@ class ContentAgent(BaseAgent):
             else "no specific research context available"
         )
 
+        from collections import Counter
+        hashtag_tally = Counter()
+        for node in context.get("research", []):
+            if "hashtags" in node.get("metadata", {}):
+                for ht in node["metadata"]["hashtags"]:
+                    hashtag_tally[ht.lower()] += 1
+        
+        if hashtag_tally:
+            top_tags = [tag for tag, count in hashtag_tally.most_common(3)]
+            trending_hashtags_str = " ".join(top_tags)
+        else:
+            trending_hashtags_str = "#relatable #chronicallyonline"
+
         system_prompt = CONTENT_SYSTEM_PROMPT.format(
             personality_traits=(
                 "personality: chaotically warm, lowercase always, relatable, "
@@ -335,6 +352,7 @@ class ContentAgent(BaseAgent):
             content_rules=CONTENT_RULES,
             hook_template=f"{template['id']}: {template['pattern']}",
             research_context=research_context_str,
+            trending_hashtags=trending_hashtags_str,
         )
 
         try:

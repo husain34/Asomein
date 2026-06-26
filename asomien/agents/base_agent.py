@@ -73,27 +73,31 @@ class BaseAgent(ABC):
         Structured audit log. Every agent action should call this.
         """
         import json
-        import os
-        
+        from pathlib import Path
+
         ts = datetime.now(timezone.utc).isoformat()
         msg = (
             f"[{self.name}] action={action!r} reason={reason!r} "
             f"outcome={outcome!r} ts={ts}"
         )
         getattr(logger, level, logger.info)(msg)
-        
-        # Append structured JSON to logs/actions.log
-        log_dir = "logs"
-        os.makedirs(log_dir, exist_ok=True)
-        log_file = os.path.join(log_dir, "actions.log")
-        
+
+        # FIX BUG-21: Resolve logs/ as an absolute path anchored to the project root
+        # (3 levels up from this file: agents/ -> asomien/ -> project root).
+        # Previously used a relative "logs" path which broke when the process was
+        # started from any directory other than the project root (e.g. cron, systemd).
+        _project_root = Path(__file__).resolve().parent.parent.parent
+        log_dir = _project_root / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_file = log_dir / "actions.log"
+
         log_entry = {
             "timestamp": ts,
             "agent": self.name,
             "action": action,
             "reason": reason,
             "outcome": str(outcome) if outcome is not None else None,
-            "level": level
+            "level": level,
         }
         try:
             with open(log_file, "a", encoding="utf-8") as f:

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTIGRAVITY // BLUESKY OS</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="brand" style="display: flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 512 512" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                <path fill="var(--accent-blue)" d="M111.8 62.2C170.2 105.9 233 194.7 256 241.1c23-46.4 85.8-135.2 144.2-178.9 27.1-20.2 64.9-25.3 84.1-8.5 20.3 17.8 14.8 55.4 3.7 93.3-15.6 53.6-59.5 106.1-133 113.8 69.3 5.4 114.7 18.2 129.4 46.2 14.7 27.9-2.2 62.4-76.3 87.7-93.5 32-152.1-10.7-152.1-10.7S197.4 426.6 103.9 394.6c-74.1-25.3-91-59.8-76.3-87.7 14.7-28 60.1-40.8 129.4-46.2-73.5-7.7-117.4-60.2-133-113.8-11.1-37.9-16.6-75.5 3.7-93.3 19.2-16.8 57-11.7 84.1 8.5z"/>
+            </svg>
+            ASOMIEN
+        </div>
+        <div class="status-indicator">
+            <div class="orb" id="status-orb"></div>
+            <span id="status-text">AUTONOMOUS</span>
+        </div>
+        <div class="stats-row">
+            <span>uptime <span id="val-uptime" class="mono">00:00:00</span></span>
+            <span>tasks <span id="val-tasks" class="mono">0</span></span>
+            <span>tokens/m <span id="val-tpm" class="mono">0</span></span>
+            <span>latency <span id="val-latency" class="mono">0ms</span></span>
+        </div>
+        <div class="clock mono" id="clock">00:00:00</div>
+    </div>
+
+    <div class="dashboard-grid">
+        
+        <!-- LEFT COLUMN -->
+        <div class="col left-col">
+            
+            <!-- Panel 1: Metrics -->
+            <div class="panel metrics-panel">
+                <div class="panel-label">METRICS</div>
+                <div class="big-metric-wrap">
+                    <div class="big-metric" id="val-success">100%</div>
+                    <div class="metric-sub">success rate</div>
+                </div>
+                <div class="bars-container">
+                    <div class="bar-row">
+                        <div class="bar-label">cpu</div>
+                        <div class="bar-track"><div class="bar-fill" id="bar-cpu" style="width: 0%; background: var(--accent-blue);"></div></div>
+                        <div class="bar-val" id="pct-cpu">0%</div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label">memory</div>
+                        <div class="bar-track"><div class="bar-fill" id="bar-mem" style="width: 0%; background: var(--accent-purple);"></div></div>
+                        <div class="bar-val" id="pct-mem">0%</div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label">tokens</div>
+                        <div class="bar-track"><div class="bar-fill" id="bar-tok" style="width: 0%; background: var(--accent-green);"></div></div>
+                        <div class="bar-val" id="pct-tok">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 2: Schedule -->
+            <div class="panel schedule-panel">
+                <div class="panel-label">SCHEDULE</div>
+                <div class="countdown-wrap">
+                    <div class="countdown" id="countdown-val">00:00</div>
+                    <div class="next-task-lbl">next: <span id="next-task-name">WAITING</span></div>
+                </div>
+                <div class="timeline" id="schedule-timeline">
+                    <!-- Dynamic timeline items here -->
+                </div>
+            </div>
+
+            <!-- Panel 3: Rules Engine -->
+            <div class="panel rules-panel">
+                <div class="panel-label">RULES ENGINE</div>
+                <div class="rules-container" id="rules-list">
+                    <!-- Dynamic rules here -->
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- CENTER COLUMN -->
+        <div class="col center-col">
+            
+            <!-- Panel 1: Throughput -->
+            <div class="panel chart-panel">
+                <div class="chart-header">
+                    <div class="panel-label">THROUGHPUT — calls/min</div>
+                    <div class="live-indicator"><span class="live-dot"></span> LIVE</div>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="chart-throughput"></canvas>
+                </div>
+            </div>
+
+            <!-- Panel 2: Neural Feed -->
+            <div class="panel feed-panel">
+                <div class="panel-label">NEURAL FEED — LIVE LOG</div>
+                <div class="feed-header">
+                    <span class="fh-time">TIME</span>
+                    <span class="fh-lvl">LVL</span>
+                    <span class="fh-agent">AGENT</span>
+                    <span class="fh-msg">MESSAGE</span>
+                </div>
+                <div class="feed-body" id="neural-feed">
+                    <!-- Logs go here -->
+                </div>
+            </div>
+
+            <!-- Panel 3: Errors & Warnings -->
+            <div class="panel errors-panel">
+                <div class="panel-label">ERRORS & WARNINGS</div>
+                <div class="errors-container" id="errors-list">
+                    <!-- Errors go here -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="col right-col">
+            
+            <!-- Panel 1: Personality Config -->
+            <div class="panel personality-panel">
+                <div class="panel-label">PERSONALITY</div>
+                <div class="traits-container" id="traits-list">
+                    <!-- Traits go here -->
+                </div>
+                <div class="config-kv mt-10">
+                    <div class="kv-row"><span class="kv-key">model</span><span class="kv-val" id="conf-model">unknown</span></div>
+                    <div class="kv-row"><span class="kv-key">mode</span><span class="kv-val" id="conf-mode" style="color:var(--accent-green);">AUTO</span></div>
+                    <div class="kv-row"><span class="kv-key">budget</span><span class="kv-val" id="conf-budget">$0.00</span></div>
+                </div>
+            </div>
+
+            <!-- Panel 2: Latency Chart -->
+            <div class="panel chart-panel">
+                <div class="panel-label">LATENCY — ms</div>
+                <div class="chart-wrap">
+                    <canvas id="chart-latency"></canvas>
+                </div>
+            </div>
+
+            <!-- Panel 3: Memory State -->
+            <div class="panel memory-panel">
+                <div class="panel-label">MEMORY STATE</div>
+                <div class="context-bar-wrap">
+                    <div class="context-bar-label">context</div>
+                    <div class="bar-track"><div class="bar-fill" id="bar-ctx" style="width: 0%; background: var(--accent-purple);"></div></div>
+                    <div class="context-tokens" id="val-ctx">0 / 0 tokens</div>
+                </div>
+                <div class="config-kv mt-10">
+                    <div class="kv-row"><span class="kv-key">working mem</span><span class="kv-val" id="val-workmem">0</span></div>
+                    <div class="kv-row"><span class="kv-key">last goal</span><span class="kv-val" id="val-lastgoal" style="color:var(--accent-green);">idle</span></div>
+                    <div class="kv-row"><span class="kv-key">db nodes</span><span class="kv-val" id="val-dbnodes">0</span></div>
+                    <div class="kv-row"><span class="kv-key">embeddings</span><span class="kv-val" id="val-embeddings">0</span></div>
+                    <div class="kv-row"><span class="kv-key">pruned</span><span class="kv-val" id="val-pruned">0</span></div>
+                </div>
+            </div>
+
+            <!-- Panel 4: Success Rate Chart -->
+            <div class="panel chart-panel">
+                <div class="panel-label">SUCCESS RATE</div>
+                <div class="chart-wrap">
+                    <canvas id="chart-success"></canvas>
+                </div>
+            </div>
+
+            <!-- Panel 5: API Connections -->
+            <div class="panel api-health-panel">
+                <div class="panel-label">API CONNECTIONS</div>
+                <div class="api-health-list" id="api-health-list">
+                    <div class="api-row" id="api-nvidia">
+                        <div class="api-dot checking" id="dot-nvidia"></div>
+                        <div class="api-info">
+                            <span class="api-name">NVIDIA NIM</span>
+                            <span class="api-model mono">meta/llama-3.1-70b</span>
+                        </div>
+                        <div class="api-status-wrap">
+                            <span class="api-status-text" id="status-nvidia">CHECKING…</span>
+                            <span class="api-latency mono" id="latency-nvidia"></span>
+                        </div>
+                    </div>
+                    <div class="api-divider"></div>
+                    <div class="api-row" id="api-bluesky">
+                        <div class="api-dot checking" id="dot-bluesky"></div>
+                        <div class="api-info">
+                            <span class="api-name">BLUESKY</span>
+                            <span class="api-model mono">bsky.social</span>
+                        </div>
+                        <div class="api-status-wrap">
+                            <span class="api-status-text" id="status-bluesky">CHECKING…</span>
+                            <span class="api-latency mono" id="latency-bluesky"></span>
+                        </div>
+                    </div>
+                    <div class="api-last-checked mono" id="api-last-checked">last checked: —</div>
+                </div>
+            </div>
+
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
