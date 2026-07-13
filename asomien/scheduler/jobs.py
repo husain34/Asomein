@@ -292,14 +292,13 @@ class SchedulerManager:
             replace_existing=True,
         )
 
-        # ── Engagement loop: every 30 minutes ─────────────────────────────────
-        # Runs immediately on startup, and then every 30 minutes.
+        # Runs every 1 hour during the bot's 15-hour awake window (e.g. 08:00 to 22:00)
         scheduler.add_job(
             self.job_engage_replies,
-            "interval",
-            minutes=30,
+            "cron",
+            hour="8-22",
+            minute=0,
             id="engagement_loop",
-            next_run_time=datetime.now(),
             replace_existing=True,
         )
 
@@ -380,12 +379,14 @@ class SchedulerManager:
         )
 
         # ── Churn follows: 04:00 ──────────────────────────────────────────────
+        # ── Starter Pack: Weekly on Sunday at 10:00 ─────────────────────────
         scheduler.add_job(
-            self.job_churn_follows,
+            self.job_generate_weekly_starterpack,
             "cron",
-            hour=4,
+            day_of_week="sun",
+            hour=10,
             minute=0,
-            id="churn_follows",
+            id="weekly_starterpack",
             replace_existing=True,
         )
 
@@ -690,11 +691,11 @@ class SchedulerManager:
             except Exception as exc:
                 logger.error("[SchedulerManager] Weekly analysis error: %s", exc)
 
-    def job_churn_follows(self) -> None:
-        """Daily: unfollow users who didn't follow back or unfollowed us."""
-        logger.debug("[SchedulerManager] job_churn_follows fired.")
+    def job_generate_weekly_starterpack(self) -> None:
+        """Weekly: generate a starter pack of top interacted users."""
+        logger.debug("[SchedulerManager] job_generate_weekly_starterpack fired.")
         if self.orchestrator is not None:
             try:
-                self.orchestrator.engagement_agent.churn_unrequited_follows()
+                self.orchestrator.engagement_agent.generate_weekly_starterpack()
             except Exception as exc:
-                logger.error("[SchedulerManager] Churn follows error: %s", exc)
+                logger.error("[SchedulerManager] Starter pack error: %s", exc)

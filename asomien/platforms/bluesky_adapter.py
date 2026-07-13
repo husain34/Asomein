@@ -127,6 +127,19 @@ class BlueskyAdapter(BasePlatformAdapter):
             logger.error(f"Failed to fetch profile: {e}")
             return {}
 
+    def get_user_profile(self, actor: str) -> dict[str, Any]:
+        """Fetch a specific user's profile including their bio/description."""
+        try:
+            profile = self.client.get_profile(actor=actor)
+            return {
+                "did": profile.did,
+                "handle": profile.handle,
+                "description": getattr(profile, 'description', "") or ""
+            }
+        except Exception as e:
+            logger.warning(f"Failed to fetch profile for {actor}: {e}")
+            return {"did": actor, "handle": "", "description": ""}
+
     def get_publishing_quota(self, **kwargs: Any) -> dict[str, Any]:
         """Bluesky write limit is 35k/day, effectively limitless for this bot."""
         return {"quota": "limitless"}
@@ -140,10 +153,12 @@ class BlueskyAdapter(BasePlatformAdapter):
                 for reply in thread.thread.replies:
                     # Exclude our own replies
                     if reply.post.author.handle != self.handle:
+                        images = self.get_post_images_base64(reply.post)
                         replies.append({
                             "id": reply.post.uri,
                             "text": reply.post.record.text,
-                            "author": reply.post.author.handle
+                            "author": reply.post.author.handle,
+                            "images": images
                         })
             return replies
         except Exception as e:
@@ -221,24 +236,130 @@ class BlueskyAdapter(BasePlatformAdapter):
             logger.error(f"Failed to like post {uri}: {e}")
             return False
 
+    def get_post_images_base64(self, post: Any) -> list[str]:
+        """Extract and download base64 images from a post's embed."""
+        import base64
+        import urllib.request
+        b64_images = []
+        try:
+            embed = getattr(post.record, 'embed', None)
+            if embed and hasattr(embed, 'images'):
+                for img_obj in embed.images:
+                    cid = getattr(img_obj.image.ref, 'link', None)
+                    if cid:
+                        url = f"https://cdn.bsky.app/img/feed_fullsize/plain/{post.author.did}/{cid}@jpeg"
+                        try:
+                            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                            with urllib.request.urlopen(req, timeout=10) as response:
+                                img_data = response.read()
+                                b64_images.append(base64.b64encode(img_data).decode('utf-8'))
+                        except Exception as e:
+                            logger.warning(f"Failed to download image {url}: {e}")
+        except Exception as e:
+            logger.warning(f"Failed to process images for post {post.uri}: {e}")
+        return b64_images
+
     def search_global_posts(self, query: str, limit: int = 20) -> list[dict[str, Any]]:
         """Search Bluesky globally for posts matching a keyword."""
         try:
-            results = self.client.app.bsky.feed.search_posts(params={'q': query, 'limit': limit})
+            results = self.client.app.bsky.feed.search_posts(params={'q': query, 'limit': limit, 'sort': 'top'})
             posts = []
             for post in results.posts:
                 # Ignore our own posts and replies
                 if post.author.handle != self.handle and hasattr(post.record, 'text') and post.record.text:
                     if getattr(post.record, 'reply', None) is not None:
                         continue
+                    
+                    # Skip if it contains a video or external link (GIFs/Tenor)
+                    embed_type = getattr(post.record.embed, '$type', '') if hasattr(post.record, 'embed') and post.record.embed else ''
+                    if embed_type in ['app.bsky.embed.video', 'app.bsky.embed.external']:
+                        continue
+                        
+                    # Extract quoted text if it's a quote tweet
+                    quoted_text = ""
+                    if embed_type in ['app.bsky.embed.record', 'app.bsky.embed.recordWithMedia']:
+                        try:
+                            # Try to extract the text from the hydrated record embed
+                            if hasattr(post, 'embed') and post.embed:
+                                record = getattr(post.embed, 'record', None)
+                                if hasattr(record, 'record'):  # Sometimes it's nested
+                                    record = record.record
+                                if hasattr(record, 'value') and hasattr(record.value, 'text'):
+                                    quoted_text = f"\n[Quoted Post]: {record.value.text}"
+                        except Exception as e:
+                            logger.warning(f"Failed to extract quote text: {e}")
+
+                    b64_images = self.get_post_images_base64(post)
+                    
+                    full_text = post.record.text + quoted_text
+                    
                     posts.append({
                         "uri": post.uri,
                         "cid": post.cid,
                         "author": post.author.handle,
                         "author_did": post.author.did,
-                        "text": post.record.text
+                        "text": full_text,
+                        "images": b64_images,
+                        "likes": getattr(post, 'like_count', 0) or 0,
+                        "replies": getattr(post, 'reply_count', 0) or 0
                     })
             return posts
         except Exception as e:
-            logger.warning(f"Failed to search global posts for '{query}': {e}")
+            logger.exception(f"Failed to search global posts for '{query}': {e}")
             return []
+
+    def create_starter_pack(self, name: str, description: str, dids: list[str]) -> str:
+        """Create a Bluesky Starter Pack containing the given DIDs."""
+        try:
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc).isoformat()
+            
+            # 1. Create the List record
+            list_record = models.AppBskyGraphList.Record(
+                name=name,
+                purpose="app.bsky.graph.defs#curatelist",
+                description=description,
+                created_at=now
+            )
+            list_response = self.client.com.atproto.repo.create_record({
+                'repo': self.client.me.did,
+                'collection': 'app.bsky.graph.list',
+                'record': list_record
+            })
+            list_uri = list_response.uri
+            
+            # 2. Add members to the list
+            for did in dids:
+                try:
+                    item_record = models.AppBskyGraphListitem.Record(
+                        subject=did,
+                        list=list_uri,
+                        created_at=now
+                    )
+                    self.client.com.atproto.repo.create_record({
+                        'repo': self.client.me.did,
+                        'collection': 'app.bsky.graph.listitem',
+                        'record': item_record
+                    })
+                except Exception as e:
+                    logger.warning(f"Failed to add {did} to starter pack list: {e}")
+            
+            # 3. Create the Starter Pack record
+            sp_record = models.AppBskyGraphStarterpack.Record(
+                name=name,
+                description=description,
+                list=list_uri,
+                created_at=now
+            )
+            sp_response = self.client.com.atproto.repo.create_record({
+                'repo': self.client.me.did,
+                'collection': 'app.bsky.graph.starterpack',
+                'record': sp_record
+            })
+            
+            logger.info(f"Successfully created Starter Pack: {sp_response.uri}")
+            return sp_response.uri
+            
+        except Exception as e:
+            logger.error(f"Failed to create Starter Pack: {e}")
+            return ""

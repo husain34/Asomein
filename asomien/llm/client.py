@@ -138,12 +138,61 @@ class NIMClient:
         content = response.choices[0].message.content or ""
 
         logger.debug(
-            f"[NIMClient] response received. "
-            f"finish_reason={response.choices[0].finish_reason}, "
-            f"content_length={len(content)}"
+            f"[NIMClient] Request successful. tokens_used="
+            f"{response.usage.total_tokens if response.usage else 'unknown'}"
         )
-
         return content
+
+    def complete_with_vision(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        base64_images: list[str],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+    ) -> str:
+        """
+        Send a multi-modal chat completion request to NIM.
+        Uses meta/llama-3.2-90b-vision-instruct as requested.
+        """
+        self._limiter.acquire()
+        
+        vision_model = "meta/llama-3.2-90b-vision-instruct"
+        temp = temperature if temperature is not None else self.temperature
+        tokens = max_tokens if max_tokens is not None else self.max_tokens
+
+        content = [{"type": "text", "text": user_prompt}]
+        if base64_images:
+            if len(base64_images) > 1:
+                logger.warning("[NIMClient] Model only supports 1 image per request. Ignoring extra images.")
+            b64 = base64_images[0]
+            content.append({
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{b64}"
+                }
+            })
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": content},
+        ]
+
+        logger.debug(f"[NIMClient] Calling {vision_model} with {len(base64_images)} images.")
+        
+        try:
+            response = self._client.chat.completions.create(
+                model=vision_model,
+                messages=messages,
+                temperature=temp,
+                max_tokens=tokens,
+            )
+            message = response.choices[0].message
+            logger.debug("[NIMClient] Vision request successful.")
+            return message.content
+        except Exception as e:
+            logger.error(f"[NIMClient] Vision API call failed: {e}")
+            raise
 
     def get_remaining_tokens(self) -> int:
         """Returns the number of API calls remaining in the current rate-limit window."""

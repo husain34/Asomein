@@ -192,10 +192,25 @@ class DashboardHandler(BaseHTTPRequestHandler):
             r_offset = 11605
             next_r = now_ts - (now_ts % r_interval) + r_offset
             if next_r <= now_ts: next_r += r_interval
+            # Engagement every 1 hour (8 through 22)
+            import datetime
+            now_dt = datetime.datetime.fromtimestamp(now_ts)
+            candidate_hours = list(range(8, 23))
+            next_e_dt = None
+            for h in candidate_hours:
+                cand = now_dt.replace(hour=h, minute=0, second=0, microsecond=0)
+                if cand.timestamp() > now_ts:
+                    next_e_dt = cand
+                    break
+            if not next_e_dt:
+                # Next day at 8 AM
+                next_e_dt = (now_dt + datetime.timedelta(days=1)).replace(hour=8, minute=0, second=0, microsecond=0)
+            next_e = int(next_e_dt.timestamp())
 
             events = [
                 {"epoch": next_a, "name": "analytics_cycle"},
-                {"epoch": next_r, "name": "research_cycle"}
+                {"epoch": next_r, "name": "research_cycle"},
+                {"epoch": next_e, "name": "engagement_cycle"}
             ]
 
             # Check database for upcoming scheduled posts
@@ -218,8 +233,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 time_str = "Now" if diff_m <= 0 else f"T+{diff_m}m"
                 schedule_list.append({"time": time_str, "name": ev["name"], "status": "next" if i==0 else "pending"})
 
-            data["next_task_epoch"] = events[0]["epoch"]
-            data["next_task_name"] = events[0]["name"]
+            # For the main countdown, prioritize engagement or publish tasks over background tasks
+            main_events = [e for e in events if e["name"] not in ["analytics_cycle", "research_cycle"]]
+            if not main_events:
+                main_events = events
+            data["next_task_epoch"] = main_events[0]["epoch"]
+            data["next_task_name"] = main_events[0]["name"]
             data["schedule"] = schedule_list
         except Exception as e:
             pass

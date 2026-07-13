@@ -29,7 +29,7 @@ SAFETY_CONFIG: dict[str, Any] = {
     "warmup_human_approval_required": True,
 
     # ── Post-warmup posting limits ────────────────────────────────────────────
-    "max_posts_per_day": 2,
+    "max_posts_per_day": 3,
     "max_ai_replies_per_day": 30,
     "max_deletions_per_day": 10,
     "min_time_between_posts_minutes": 240,
