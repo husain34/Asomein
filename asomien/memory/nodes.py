@@ -148,11 +148,12 @@ class PostNode(BaseModel):
 
     @property
     def is_lowercase_compliant(self) -> bool:
-        """First character of the post must be lowercase."""
+        """First character of the post must not be uppercase."""
         stripped = self.content.lstrip()
         if not stripped:
             return False
-        return stripped[0].islower()
+        # Allow digits, emojis, punctuation — only block uppercase letters
+        return not stripped[0].isupper()
 
 
 # ── MetricsSnapshot ───────────────────────────────────────────────────────────

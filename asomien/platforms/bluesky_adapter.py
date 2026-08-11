@@ -23,13 +23,18 @@ class BlueskyAdapter(BasePlatformAdapter):
         self.handle = handle
         self.client = Client()
         import time
-        for _ in range(3):
+        last_error = None
+        for attempt in range(3):
             try:
                 self.client.login(handle, app_password)
+                last_error = None
                 break
             except Exception as e:
-                logger.warning(f"[BlueskyAdapter] Login timeout/error, retrying: {e}")
+                last_error = e
+                logger.warning(f"[BlueskyAdapter] Login attempt {attempt+1}/3 failed: {e}")
                 time.sleep(5)
+        if last_error is not None:
+            raise RuntimeError(f"[BlueskyAdapter] Failed to authenticate after 3 retries: {last_error}")
 
     def publish_text_post(self, text: str, **kwargs: Any) -> str:
         """Publish a root post. Returns the URI."""
@@ -270,8 +275,13 @@ class BlueskyAdapter(BasePlatformAdapter):
                     if getattr(post.record, 'reply', None) is not None:
                         continue
                     
-                    # Skip if it contains a video or external link (GIFs/Tenor)
-                    embed_type = getattr(post.record.embed, '$type', '') if hasattr(post.record, 'embed') and post.record.embed else ''
+                    # In atproto SDK, $type is exposed as py_type or via model_dump()
+                    embed_obj = post.record.embed if hasattr(post.record, 'embed') and post.record.embed else None
+                    embed_type = ""
+                    if embed_obj:
+                        embed_type = getattr(embed_obj, 'py_type', '') or getattr(embed_obj, '$type', '')
+                        if not embed_type and hasattr(embed_obj, 'model_dump'):
+                            embed_type = embed_obj.model_dump().get('$type', '')
                     if embed_type in ['app.bsky.embed.video', 'app.bsky.embed.external']:
                         continue
                         

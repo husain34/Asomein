@@ -56,8 +56,8 @@ class PersonalityEngine:
 
         # Pre-parse frequently accessed sections for performance
         self._writing_rules: dict[str, Any] = self._seed.get("writing_rules", {})
-        self._core_traits: list[dict[str, Any]] = self._seed.get("core_traits", [])
-        self._adaptive_traits: list[dict[str, Any]] = self._seed.get("adaptive_traits", [])
+        self._core_traits: list[dict[str, Any]] = self._deduplicate_traits(self._seed.get("core_traits", []))
+        self._adaptive_traits: list[dict[str, Any]] = self._deduplicate_traits(self._seed.get("adaptive_traits", []))
         self._example_approved: list[str] = self._seed.get("example_approved_posts", [])
         self._example_rejected: list[str] = self._seed.get("example_rejected_posts", [])
 
@@ -111,6 +111,113 @@ class PersonalityEngine:
             if trait.get("trait_name") == trait_name:
                 return trait
         return None
+
+    def _is_trait_duplicate(self, new_trait: dict[str, Any], existing_traits: list[dict[str, Any]]) -> bool:
+        """
+        Check if new_trait is a duplicate of any trait in existing_traits.
+        Duplicate if:
+          - same trait_name (normalized exact match or difflib similarity >= 0.75) OR
+          - description similarity (cosine) >= 0.85
+        """
+        import difflib
+
+        new_name_raw = new_trait.get("trait_name", "").strip().lower()
+        new_name_norm = new_name_raw.replace("_", " ").replace("-", " ")
+        new_desc = new_trait.get("description", "").strip()
+
+        # If the new trait has no name, we cannot check by name, but we can still check by description?
+        # However, a trait without a name is invalid. We'll treat it as duplicate if description is similar?
+        # But let's assume the trait must have a name and description.
+
+        for trait in existing_traits:
+            exist_name_raw = trait.get("trait_name", "").strip().lower()
+            exist_name_norm = exist_name_raw.replace("_", " ").replace("-", " ")
+            exist_desc = trait.get("description", "").strip()
+
+            # Check by name (normalized exact match or high similarity)
+            if new_name_norm and exist_name_norm:
+                if new_name_norm == exist_name_norm:
+                    return True
+                if difflib.SequenceMatcher(None, new_name_norm, exist_name_norm).ratio() >= 0.75:
+                    return True
+
+            # Check by description similarity (only if both descriptions are non-empty)
+            if new_desc and exist_desc:
+                try:
+                    from sklearn.feature_extraction.text import TfidfVectorizer
+                    from sklearn.metrics.pairwise import cosine_similarity
+                except ImportError:
+                    # If sklearn is not available, we skip description similarity check.
+                    # In production, we should have sklearn, but for safety we skip.
+                    continue
+
+                # Vectorize the two descriptions
+                vectorizer = TfidfVectorizer()
+                try:
+                    tfidf_matrix = vectorizer.fit_transform([new_desc, exist_desc])
+                    similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+                except ValueError:
+                    # This can happen if the vocabulary is empty (e.g., both descriptions are empty strings)
+                    similarity = 0.0
+
+                if similarity >= 0.85:
+                    return True
+
+        return False
+
+    def _deduplicate_traits(self, traits: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """
+        Remove duplicate traits based on trait_name and description similarity.
+        Keeps the first occurrence.
+        """
+        unique_traits = []
+        for trait in traits:
+            if not self._is_trait_duplicate(trait, unique_traits):
+                unique_traits.append(trait)
+        return unique_traits
+
+    def add_trait(self, trait: dict[str, Any]) -> bool:
+        """
+        Add a new trait to the appropriate list (core or adaptive) if it's not a duplicate.
+
+        Args:
+            trait: Dictionary containing trait_name, trait_type, value, and description
+
+        Returns:
+            bool: True if trait was added, False if it was considered a duplicate
+        """
+        # Validate trait has required fields
+        if not isinstance(trait, dict):
+            logger.warning("[PersonalityEngine] Invalid trait format: must be a dictionary")
+            return False
+
+        trait_name = trait.get("trait_name")
+        trait_type = trait.get("trait_type")
+
+        if not trait_name or not trait_type:
+            logger.warning("[PersonalityEngine] Trait must have trait_name and trait_type")
+            return False
+
+        # Determine which list to check and add to
+        if trait_type == "core":
+            existing_traits = self._core_traits
+            target_list = self._core_traits
+        elif trait_type == "adaptive":
+            existing_traits = self._adaptive_traits
+            target_list = self._adaptive_traits
+        else:
+            logger.warning(f"[PersonalityEngine] Unknown trait_type: {trait_type}. Must be 'core' or 'adaptive'")
+            return False
+
+        # Check for duplicates
+        if self._is_trait_duplicate(trait, existing_traits):
+            logger.info(f"[PersonalityEngine] Trait '{trait_name}' is considered a duplicate and was not added")
+            return False
+
+        # Add the trait
+        target_list.append(trait)
+        logger.info(f"[PersonalityEngine] Added new {trait_type} trait: '{trait_name}'")
+        return True
 
     # ── apply_to_prompt() ─────────────────────────────────────────────────────
 

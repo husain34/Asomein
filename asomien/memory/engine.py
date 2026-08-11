@@ -184,6 +184,12 @@ class MemoryEngine:
             )
 
     def _store_post(self, node: PostNode) -> None:
+        # Handle Pydantic models (e.g. CritiqueScore) that aren't JSON-serializable directly
+        pre_score_raw = node.pre_score
+        if hasattr(pre_score_raw, "model_dump"):
+            pre_score_raw = pre_score_raw.model_dump()
+        pre_score_json = json.dumps(pre_score_raw) if pre_score_raw else None
+
         with self._connect() as conn:
             conn.execute(
                 """
@@ -216,11 +222,12 @@ class MemoryEngine:
                     node.reply_to_threads_id,
                     1 if node.is_sponsored else 0,
                     node.sponsor_campaign_id,
-                    json.dumps(node.pre_score) if node.pre_score else None,
+                    pre_score_json,
                     node.summary,
                     node.created_at.isoformat(),
                 ),
             )
+
 
     def _store_reflection(self, node: ReflectionNode) -> None:
         with self._connect() as conn:
@@ -287,7 +294,7 @@ class MemoryEngine:
                 SET    is_active = 0
                 WHERE  is_active = 1
                   AND  expiry IS NOT NULL
-                  AND  expiry <= ?
+                  AND  datetime(expiry) <= datetime(?)
                 """,
                 (now_iso,),
             )
@@ -585,7 +592,38 @@ class MemoryEngine:
             return cursor.fetchone()[0]
 
     def consolidate(self) -> None:
-        """Consolidate memory during sleep mode."""
-        logger.info("[MemoryEngine.consolidate] Consolidating memory...")
-        count = self.expire_stale_nodes()
-        logger.info("[MemoryEngine.consolidate] Consolidation complete. Expired %d nodes.", count)
+        """Consolidate memory during sleep mode.
+
+        Enhanced consolidation includes:
+        - Expiring stale nodes
+        - Optimizing database indices
+        - Running vacuum operation to reclaim space
+        - Logging detailed statistics
+        """
+        logger.info("[MemoryEngine.consolidate] Starting memory consolidation...")
+
+        # Step 1: Expire stale nodes
+        expired_count = self.expire_stale_nodes()
+
+        # Step 2: Optimize database indices and vacuum
+        try:
+            with self._connect() as conn:
+                # Analyze database to update statistics for query planner
+                conn.execute("ANALYZE;")
+
+                # Vacuum to reclaim space and defragment database
+                conn.execute("VACUUM;")
+
+                # Get database size info for logging
+                page_count = conn.execute("PRAGMA page_count;").fetchone()[0]
+                page_size = conn.execute("PRAGMA page_size;").fetchone()[0]
+                db_size_mb = (page_count * page_size) / (1024 * 1024)
+
+                logger.info("[MemoryEngine.consolidate] Database optimization completed. "
+                           "Size: %.2f MB, Page count: %d, Page size: %d bytes",
+                           db_size_mb, page_count, page_size)
+        except Exception as e:
+            logger.error("[MemoryEngine.consolidate] Failed to optimize database: %s", e)
+
+        logger.info("[MemoryEngine.consolidate] Consolidation complete. "
+                   "Expired %d nodes.", expired_count)

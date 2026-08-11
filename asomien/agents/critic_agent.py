@@ -147,7 +147,7 @@ class CriticAgent(BaseAgent):
             with sqlite3.connect(metrics_db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 rows = conn.execute(
-                    "SELECT post_id, creator_engagement_score, likes, replies, reposts FROM post_metrics ORDER BY creator_engagement_score DESC LIMIT 5"
+                    "SELECT post_id, MAX(creator_engagement_score) as creator_engagement_score, likes, replies, reposts FROM post_metrics GROUP BY post_id HAVING creator_engagement_score >= 5 ORDER BY creator_engagement_score DESC LIMIT 5"
                 ).fetchall()
             
             if not rows:
@@ -172,6 +172,16 @@ class CriticAgent(BaseAgent):
                 return
 
             # 3. Generate Reflection via LLM
+            # Fetch existing active directives to include in the prompt
+            active_rows = []
+            with sqlite3.connect(directives_db_path) as dir_conn:
+                dir_conn.row_factory = sqlite3.Row
+                active_rows = dir_conn.execute("SELECT id, content FROM directives WHERE status = 'active'").fetchall()
+            
+            existing_rules_str = ""
+            if active_rows:
+                existing_rules_str = "\n\nCurrently Active Rules (DO NOT REPEAT THESE CONCEPTS):\n" + "\n".join(f"- {r['content']}" for r in active_rows)
+
             # FIX BUG-12: Use proper \n (actual newlines) and standard quote escaping.
             # Previous code used \\n (literal backslash-n) which sent garbled text to the LLM.
             post_lines = "".join(
@@ -182,10 +192,12 @@ class CriticAgent(BaseAgent):
                 "You are the internal Critic for an autonomous Gen-Z persona bot.\n"
                 "Here are the top performing posts of the week based on engagement score:\n\n"
                 + post_lines
+                + existing_rules_str
                 + (
-                    "\nBased on these successful posts, extract 1 extremely concise, hard rule (directive) "
+                    "\n\nBased on these successful posts, extract 1 extremely concise, hard rule (directive) "
                     "about what topics, vocabulary, or humor styles the bot should focus on next week. "
-                    "Output ONLY the rule, nothing else. Start with 'Focus on...'"
+                    "Output ONLY the rule, nothing else. Start with 'Focus on...'. "
+                    "CRITICAL: Do NOT generate a rule that is similar in concept or phrasing to any of the Currently Active Rules."
                 )
             )
 
@@ -202,8 +214,33 @@ class CriticAgent(BaseAgent):
             reflection_clean = reflection.strip().strip('"').strip("'")
             self.log_action("generated_directive", f"New directive: {reflection_clean}")
 
-            # 4. Save to directives.db
+            # 4. Save to directives.db with Cosine Similarity Deduplication
             with sqlite3.connect(directives_db_path) as dir_conn:
+                dir_conn.row_factory = sqlite3.Row
+                
+                if active_rows:
+                    try:
+                        from sklearn.feature_extraction.text import TfidfVectorizer
+                        from sklearn.metrics.pairwise import cosine_similarity
+                        
+                        existing_texts = [r["content"] for r in active_rows]
+                        existing_ids = [r["id"] for r in active_rows]
+                        
+                        all_texts = existing_texts + [reflection_clean]
+                        vectorizer = TfidfVectorizer(stop_words='english')
+                        tfidf_matrix = vectorizer.fit_transform(all_texts)
+                        
+                        similarities = cosine_similarity(tfidf_matrix[-1:], tfidf_matrix[:-1])[0]
+                        
+                        for idx, sim in enumerate(similarities):
+                            if sim >= 0.75:
+                                matched_id = existing_ids[idx]
+                                dir_conn.execute("UPDATE directives SET status = 'archived' WHERE id = ?", (matched_id,))
+                                logger.info(f"[CriticAgent] Archived redundant directive {matched_id} (Similarity: {sim:.2f})")
+                                break
+                    except ImportError:
+                        logger.warning("[CriticAgent] scikit-learn not installed. Skipping deduplication.")
+                
                 dir_conn.execute(
                     "INSERT INTO directives (id, directive_type, content, priority, status, start_time) VALUES (?, ?, ?, ?, ?, ?)",
                     (str(uuid.uuid4()), "content_rule", reflection_clean, 8, "active", datetime.now(timezone.utc).isoformat())
@@ -649,17 +686,165 @@ class CriticAgent(BaseAgent):
     # Defined here so the class matches the blueprint Section 5 spec.
 
     def post_publish_analysis(self, post: Any, metrics: Any) -> None:
-        """Phase 8: run post-hoc analysis after metrics are collected."""
-        logger.debug("[CriticAgent] post_publish_analysis deferred to Phase 8.")
+        """Phase 8: run post-hoc analysis after metrics are collected.
+
+        Analyzes the performance of a published post against collected metrics
+        to generate insights for future content improvement.
+        """
+        if not self.memory:
+            logger.warning("[CriticAgent] No memory available for post-publish analysis.")
+            return
+
+        try:
+            # Import here to avoid circular imports
+            from asomien.memory.nodes import PostNode
+
+            # Extract key metrics for analysis
+            engagement_score = getattr(metrics, 'creator_engagement_score', 0) if hasattr(metrics, 'creator_engagement_score') else 0
+            views = getattr(metrics, 'views', 0) if hasattr(metrics, 'views') else 0
+            likes = getattr(metrics, 'likes', 0) if hasattr(metrics, 'likes') else 0
+            replies = getattr(metrics, 'replies', 0) if hasattr(metrics, 'replies') else 0
+
+            post_content = getattr(post, 'content', '') if hasattr(post, 'content') else str(post)
+
+            # Store analysis insights in memory for future learning
+            analysis_note = (
+                f"Post analysis - Engagement: {engagement_score:.2f}, "
+                f"Views: {views}, Likes: {likes}, Replies: {replies}. "
+                f"Content preview: {post_content[:100]}..."
+            )
+
+            logger.info("[CriticAgent] Post-publish analysis: %s", analysis_note)
+
+            # Optionally store as a special type of reflection or insight
+            # For now, we log it and could extend to store in a dedicated table
+
+        except Exception as e:
+            logger.error("[CriticAgent] Post-publish analysis failed: %s", e)
 
     def generate_hypothesis(self, observation: str) -> str:
-        """Phase 8: generate a testable hypothesis from an observation."""
-        logger.debug("[CriticAgent] generate_hypothesis deferred to Phase 8.")
-        return ""
+        """Phase 8: generate a testable hypothesis from an observation.
+
+        Takes an observation about post performance and generates a
+        testable hypothesis for improving future content.
+        """
+        if not observation or not observation.strip():
+            logger.warning("[CriticAgent] Empty observation provided for hypothesis generation.")
+            return ""
+
+        try:
+            # Generate a hypothesis based on common patterns
+            observation_lower = observation.lower()
+
+            # Simple heuristic-based hypothesis generation
+            if "engagement" in observation_lower and ("low" in observation_lower or "poor" in observation_lower):
+                return "Hypothesis: Increasing specificity and relatability in posts will improve engagement scores."
+            elif "views" in observation_lower and ("low" in observation_lower or "poor" in observation_lower):
+                return "Hypothesis: Using more trending hashtags and optimizing post timing will increase views."
+            elif "likes" in observation_lower and ("low" in observation_lower or "poor" in observation_lower):
+                return "Hypothesis: Improving hook strength and humor density will increase like rates."
+            elif "replies" in observation_lower and ("low" in observation_lower or "poor" in observation_lower):
+                return "Hypothesis: Adding more open-ended questions and reply-bait phrases will increase comment engagement."
+            elif "specific" in observation_lower or "detail" in observation_lower:
+                return "Hypothesis: Maintaining current level of specificity while improving format recognition will boost performance."
+            else:
+                # Generic hypothesis based on observation
+                return f"Hypothesis: Adjusting content approach based on observation '{observation[:50]}...' will improve performance metrics."
+
+        except Exception as e:
+            logger.error("[CriticAgent] Hypothesis generation failed: %s", e)
+            return "Hypothesis: Further investigation needed into content performance factors."
 
     def generate_reflection(self, post: Any, metrics: Any) -> None:
-        """Phase 8: generate a ReflectionNode for a post + metrics."""
-        logger.debug("[CriticAgent] generate_reflection deferred to Phase 8.")
+        """Phase 8: generate a ReflectionNode for a post + metrics.
+
+        Creates a structured reflection analyzing a published post's performance
+        and stores it in the memory system for learning.
+        """
+        if not self.memory:
+            logger.warning("[CriticAgent] No memory available for reflection generation.")
+            return
+
+        try:
+            # Import here to avoid circular imports
+            from asomien.memory.nodes import ReflectionNode
+            import json
+
+            # Extract post content and metrics
+            post_content = getattr(post, 'content', '') if hasattr(post, 'content') else str(post)
+            post_id = getattr(post, 'id', '') if hasattr(post, 'id') else str(post)
+
+            # Extract metrics with safe defaults
+            engagement_score = getattr(metrics, 'creator_engagement_score', 0.0) if hasattr(metrics, 'creator_engagement_score') else 0.0
+            views = getattr(metrics, 'views', 0) if hasattr(metrics, 'views') else 0
+            likes = getattr(metrics, 'likes', 0) if hasattr(metrics, 'likes') else 0
+            replies = getattr(metrics, 'replies', 0) if hasattr(metrics, 'replies') else 0
+            reposts = getattr(metrics, 'reposts', 0) if hasattr(metrics, 'reposts') else 0
+            quotes = getattr(metrics, 'quotes', 0) if hasattr(metrics, 'quotes') else 0
+
+            # Analyze performance and generate reflection components
+            success_factors = []
+            failure_factors = []
+            hypotheses = []
+            lessons_learned = []
+
+            # Determine success/failure based on engagement score
+            if engagement_score >= 5.0:  # Threshold from analyze_weekly_performance
+                success_factors.append(f"Strong engagement score: {engagement_score:.2f}")
+                if views > 1000:
+                    success_factors.append(f"High reach: {views} views")
+                if likes > 50:
+                    success_factors.append(f"Good like rate: {likes} likes")
+                if replies > 10:
+                    success_factors.append(f"High conversation: {replies} replies")
+            else:
+                failure_factors.append(f"Weak engagement score: {engagement_score:.2f}")
+                if views < 100:
+                    failure_factors.append(f"Low reach: {views} views")
+                if likes < 10:
+                    failure_factors.append(f"Poor like rate: {likes} likes")
+                if replies < 2:
+                    failure_factors.append(f"Low conversation: {replies} replies")
+
+            # Generate hypotheses based on performance
+            if engagement_score < 3.0:
+                hypotheses.append("Hypothesis: Increasing specificity and relatability will improve engagement")
+                hypotheses.append("Hypothesis: Better hook strength in opening lines will capture more attention")
+            elif engagement_score < 5.0:
+                hypotheses.append("Hypothesis: Optimizing post timing for audience activity will boost performance")
+                hypotheses.append("Hypothesis: Incorporating trending formats while maintaining originality will help")
+            else:
+                hypotheses.append("Hypothesis: Current approach is working well - consider slight variations to test limits")
+                hypotheses.append("Hypothesis: Successful elements can be amplified in future similar content")
+
+            # Lessons learned
+            if views > 0:
+                like_rate = (likes / views * 100) if views > 0 else 0
+                reply_rate = (replies / views * 100) if views > 0 else 0
+                lessons_learned.append(f"Like rate: {like_rate:.2f}%, Reply rate: {reply_rate:.2f}%")
+
+            if engagement_score > 0:
+                engagement_efficiency = engagement_score / max(views / 100, 1)  # Normalize
+                lessons_learned.append(f"Engagement efficiency score: {engagement_efficiency:.2f}")
+
+            # Create the reflection node
+            reflection = ReflectionNode(
+                post_id=post_id,
+                hook_template_used=getattr(post, 'hook_template_used', '') if hasattr(post, 'hook_template_used') else "",
+                sub_niche="general",  # Could be enhanced to detect sub-niche from content
+                success_factors=success_factors,
+                failure_factors=failure_factors,
+                hypotheses=hypotheses,
+                lessons_learned=lessons_learned,
+                confidence=min(0.9, max(0.3, engagement_score / 10.0))  # Scale confidence with engagement
+            )
+
+            # Store the reflection in memory
+            self.memory.store(reflection)
+            logger.info("[CriticAgent] Generated and stored reflection for post %s", post_id[:8])
+
+        except Exception as e:
+            logger.error("[CriticAgent] Reflection generation failed: %s", e)
 
     def update_rules(self, reflection: Any) -> None:
         """Phase 8: update RuleNodes based on reflection learnings."""
@@ -671,34 +856,101 @@ class CriticAgent(BaseAgent):
             import sqlite3
             from datetime import datetime
             import uuid
+            import difflib
             
             adjustments = reflection.get("trait_adjustments", {})
             with sqlite3.connect(self.memory.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                # Load existing traits to check for duplicates
+                cur = conn.execute("SELECT trait_name FROM personality_traits")
+                existing_traits = [row["trait_name"] for row in cur.fetchall()]
+
                 for trait_name, shift in adjustments.items():
                     try:
                         shift_val = float(shift)
+                        ts = datetime.now().isoformat()
+                        
+                        target_name = trait_name
+                        new_name_norm = trait_name.strip().lower().replace("_", " ").replace("-", " ")
+                        
+                        # Find if there is a match using the fuzzy logic
+                        for exist_name in existing_traits:
+                            exist_name_norm = exist_name.strip().lower().replace("_", " ").replace("-", " ")
+                            if new_name_norm == exist_name_norm or difflib.SequenceMatcher(None, new_name_norm, exist_name_norm).ratio() >= 0.75:
+                                target_name = exist_name
+                                break
+
                         conn.execute(
                             """
-                            UPDATE personality_traits
-                            SET value = MIN(1.0, MAX(0.0, value + ?)),
-                                last_updated = ?
-                            WHERE trait_name = ?
+                            INSERT INTO personality_traits (id, trait_name, trait_type, value, last_updated)
+                            VALUES (?, ?, 'dynamic', 0.5 + ?, ?)
+                            ON CONFLICT(trait_name) DO UPDATE SET
+                                value = MIN(1.0, MAX(0.0, personality_traits.value + ?)),
+                                last_updated = excluded.last_updated
                             """,
-                            (shift_val, datetime.now().isoformat(), trait_name)
+                            (str(uuid.uuid4()), target_name, shift_val, ts, shift_val)
                         )
+                        
+                        # If we added a brand new trait, append it to our local cache for subsequent loop checks
+                        if target_name not in existing_traits:
+                            existing_traits.append(target_name)
+                            
                     except ValueError:
                         continue
                         
             lessons = reflection.get("new_rules", [])
-            for rule in lessons:
+            if lessons:
                 with sqlite3.connect(self.memory.db_path) as conn:
-                    conn.execute(
-                        """
-                        INSERT INTO rules (id, rule_text, confidence, created_at, is_active)
-                        VALUES (?, ?, 0.6, ?, 1)
-                        """,
-                        (str(uuid.uuid4()), rule, datetime.now().isoformat())
-                    )
+                    conn.row_factory = sqlite3.Row
+                    active_rows = conn.execute("SELECT id, rule_text FROM rules WHERE is_active = 1").fetchall()
+                    existing_texts = [r["rule_text"] for r in active_rows]
+                    existing_ids = [r["id"] for r in active_rows]
+                    
+                    try:
+                        from sklearn.feature_extraction.text import TfidfVectorizer
+                        from sklearn.metrics.pairwise import cosine_similarity
+                        
+                        vectorizer = TfidfVectorizer(stop_words='english')
+                        
+                        for rule in lessons:
+                            if not existing_texts:
+                                new_id = str(uuid.uuid4())
+                                conn.execute(
+                                    "INSERT INTO rules (id, rule_text, confidence, created_at, is_active) VALUES (?, ?, 0.6, ?, 1)",
+                                    (new_id, rule, datetime.now().isoformat())
+                                )
+                                existing_texts.append(rule)
+                                existing_ids.append(new_id)
+                                continue
+                                
+                            all_texts = existing_texts + [rule]
+                            tfidf_matrix = vectorizer.fit_transform(all_texts)
+                            similarities = cosine_similarity(tfidf_matrix[-1:], tfidf_matrix[:-1])[0]
+                            
+                            is_duplicate = False
+                            for idx, sim in enumerate(similarities):
+                                if sim >= 0.75:
+                                    matched_id = existing_ids[idx]
+                                    conn.execute("UPDATE rules SET confidence = MIN(1.0, confidence + 0.1) WHERE id = ?", (matched_id,))
+                                    logger.info(f"[CriticAgent] Reinforced existing short-term rule {matched_id} (Similarity: {sim:.2f})")
+                                    is_duplicate = True
+                                    break
+                            
+                            if not is_duplicate:
+                                new_id = str(uuid.uuid4())
+                                conn.execute(
+                                    "INSERT INTO rules (id, rule_text, confidence, created_at, is_active) VALUES (?, ?, 0.6, ?, 1)",
+                                    (new_id, rule, datetime.now().isoformat())
+                                )
+                                existing_texts.append(rule)
+                                existing_ids.append(new_id)
+                    except ImportError:
+                        logger.warning("[CriticAgent] scikit-learn not installed. Skipping rule deduplication.")
+                        for rule in lessons:
+                            conn.execute(
+                                "INSERT INTO rules (id, rule_text, confidence, created_at, is_active) VALUES (?, ?, 0.6, ?, 1)",
+                                (str(uuid.uuid4()), rule, datetime.now().isoformat())
+                            )
         except Exception as e:
             logger.error("[CriticAgent] Failed to update rules: %s", e)
 

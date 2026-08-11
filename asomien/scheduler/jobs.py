@@ -292,12 +292,12 @@ class SchedulerManager:
             replace_existing=True,
         )
 
-        # Runs every 1 hour during the bot's 15-hour awake window (e.g. 08:00 to 22:00)
+        # Runs every 10 minutes during the bot's 15-hour awake window (e.g. 08:00 to 22:00)
         scheduler.add_job(
             self.job_engage_replies,
             "cron",
             hour="8-22",
-            minute=0,
+            minute="*/10",
             id="engagement_loop",
             replace_existing=True,
         )
@@ -391,6 +391,12 @@ class SchedulerManager:
         )
 
         logger.info("[SchedulerManager] All jobs registered.")
+
+        # Wire analytics from orchestrator so publish guards have real data
+        if self.analytics is None and orchestrator is not None:
+            self.analytics = getattr(orchestrator, "analytics_agent", None) or getattr(orchestrator, "analytics", None)
+            if self.analytics:
+                logger.info("[SchedulerManager] Analytics agent wired from orchestrator.")
 
         # Bootstrap: schedule today's remaining windows in case the server was rebooted after 07:30
         self.job_schedule_todays_publishes()
@@ -578,29 +584,35 @@ class SchedulerManager:
         logger.debug("[SchedulerManager] job_reflect fired.")
         if self.orchestrator and self.orchestrator.critic_agent and self.orchestrator.memory:
             try:
+                import os
                 import sqlite3
-                from datetime import datetime, timedelta
-                
-                # 1. Query the last 24h of PostNodes from the database
-                cutoff = (datetime.now() - timedelta(hours=24)).isoformat()
+                from datetime import datetime, timedelta, timezone
+
+                # 1. Query the last 24h of PostNodes from the database (use UTC!)
+                cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+                # Derive metrics.db path from memory.db path — avoid hardcoded relative paths
+                metrics_db_path = os.path.join(
+                    os.path.dirname(os.path.abspath(self.orchestrator.memory.db_path)),
+                    "metrics.db"
+                )
                 with sqlite3.connect(self.orchestrator.memory.db_path) as conn:
                     conn.row_factory = sqlite3.Row
-                    conn.execute("ATTACH DATABASE 'data/metrics.db' AS metrics")
+                    conn.execute(f"ATTACH DATABASE '{metrics_db_path}' AS metrics")
                     cursor = conn.execute(
                         """
-                        SELECT p.*, 
-                               COALESCE(pm.views, 0) as views, 
-                               COALESCE(pm.likes, 0) as likes, 
-                               COALESCE(pm.replies, 0) as replies 
+                        SELECT p.*,
+                               COALESCE(pm.views, 0) as views,
+                               COALESCE(pm.likes, 0) as likes,
+                               COALESCE(pm.replies, 0) as replies
                         FROM posts p
                         LEFT JOIN metrics.post_metrics pm ON p.id = pm.post_id
                         WHERE p.created_at >= ? AND p.status = 'published'
                         ORDER BY p.created_at DESC
-                        """, 
+                        """,
                         (cutoff,)
                     )
                     recent_posts = [dict(r) for r in cursor.fetchall()]
-                    
+
                 # 2. Pass this data to CriticAgent via run_daily_reflection
                 if hasattr(self.orchestrator.critic_agent, 'run_daily_reflection'):
                     reflection_data = self.orchestrator.critic_agent.run_daily_reflection(recent_posts)
@@ -694,7 +706,7 @@ class SchedulerManager:
     def job_generate_weekly_starterpack(self) -> None:
         """Weekly: generate a starter pack of top interacted users."""
         logger.debug("[SchedulerManager] job_generate_weekly_starterpack fired.")
-        if self.orchestrator is not None:
+        if self.orchestrator is not None and getattr(self.orchestrator, "engagement_agent", None):
             try:
                 self.orchestrator.engagement_agent.generate_weekly_starterpack()
             except Exception as exc:

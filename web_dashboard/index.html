@@ -3,207 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asomein Bot</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='%230085ff' d='M111.8 62.2C170.2 105.9 233 194.7 256 241.1c23-46.4 85.8-135.2 144.2-178.9 27.1-20.2 64.9-25.3 84.1-8.5 20.3 17.8 14.8 55.4 3.7 93.3-15.6 53.6-59.5 106.1-133 113.8 69.3 5.4 114.7 18.2 129.4 46.2 14.7 27.9-2.2 62.4-76.3 87.7-93.5 32-152.1-10.7-152.1-10.7S197.4 426.6 103.9 394.6c-74.1-25.3-91-59.8-76.3-87.7 14.7-28 60.1-40.8 129.4-46.2-73.5-7.7-117.4-60.2-133-113.8-11.1-37.9-16.6-75.5 3.7-93.3 19.2-16.8 57-11.7 84.1 8.5z'/></svg>">
+    <title>Asomein Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 528.2 460'><path fill='%2300e5ff' d='M127.3,16.5C186.2,58,238.1,139.2,264.1,189.6c26-50.4,77.9-131.6,136.8-173.1c44.8-31.5,108.3-43,127.3-6.5c13.7,26.3-5.3,101.4-18.4,136.8c-23.7,64.1-88.4,79.9-148.4,62.1c83.1,8.9,139.4,45.2,111.5,123.1c-34.7,96.8-170,121-208.9,127.9c-38.9-6.9-174.2-31.1-208.9-127.9c-27.9-77.9,28.4-114.2,111.5-123.1c-60,17.8-124.7,2-148.4-62.1C5.6,111.4-13.4,36.3,0.3,10C19.3-26.5,82.8-15,127.3,16.5z'/></svg>" />
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <div id="interactive-bg"></div>
+    <div class="background-overlay scanlines"></div>
+    
+    <header class="top-bar">
+        <div class="top-left">
+            <div class="brand"><svg viewBox="0 0 528.2 460" width="22" height="19" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#00e5ff" d="M127.3,16.5C186.2,58,238.1,139.2,264.1,189.6c26-50.4,77.9-131.6,136.8-173.1c44.8-31.5,108.3-43,127.3-6.5
+                    c13.7,26.3-5.3,101.4-18.4,136.8c-23.7,64.1-88.4,79.9-148.4,62.1c83.1,8.9,139.4,45.2,111.5,123.1c-34.7,96.8-170,121-208.9,127.9
+                    c-38.9-6.9-174.2-31.1-208.9-127.9c-27.9-77.9,28.4-114.2,111.5-123.1c-60,17.8-124.7,2-148.4-62.1C5.6,111.4-13.4,36.3,0.3,10
+                    C19.3-26.5,82.8-15,127.3,16.5z"/>
+                </svg></div>
+            <div id="status-orb" class="live-dot"></div>
+            <span id="status-text" class="status-label">AUTONOMOUS</span>
+        </div>
+        <div class="top-center">
+            <div class="stat-box"><span class="stat-icon">◷</span><span id="val-uptime" class="mono">00:00:00</span></div>
+            <div class="stat-box"><span class="stat-icon">✓</span><span id="val-tasks" class="mono">0</span> tasks</div>
+            <div class="stat-box"><span class="stat-icon">⚡</span><span id="val-tpm" class="mono">0</span> tpm</div>
+            <div class="stat-box"><span class="stat-icon">⟷</span><span id="val-latency" class="mono">0</span> ms</div>
+        </div>
+        <div class="top-right">
+            <span id="clock" class="mono">00:00:00</span>
+        </div>
+    </header>
 
-    <div class="top-bar">
-        <div class="brand" style="display: flex; align-items: center; gap: 8px;">
-            <svg viewBox="0 0 512 512" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-                <path fill="var(--accent-blue)" d="M111.8 62.2C170.2 105.9 233 194.7 256 241.1c23-46.4 85.8-135.2 144.2-178.9 27.1-20.2 64.9-25.3 84.1-8.5 20.3 17.8 14.8 55.4 3.7 93.3-15.6 53.6-59.5 106.1-133 113.8 69.3 5.4 114.7 18.2 129.4 46.2 14.7 27.9-2.2 62.4-76.3 87.7-93.5 32-152.1-10.7-152.1-10.7S197.4 426.6 103.9 394.6c-74.1-25.3-91-59.8-76.3-87.7 14.7-28 60.1-40.8 129.4-46.2-73.5-7.7-117.4-60.2-133-113.8-11.1-37.9-16.6-75.5 3.7-93.3 19.2-16.8 57-11.7 84.1 8.5z"/>
-            </svg>
-            ASOMIEN
-        </div>
-        <div class="status-indicator">
-            <div class="orb" id="status-orb"></div>
-            <span id="status-text">AUTONOMOUS</span>
-        </div>
-        <div class="stats-row">
-            <span>uptime <span id="val-uptime" class="mono">00:00:00</span></span>
-            <span>tasks <span id="val-tasks" class="mono">0</span></span>
-            <span>tokens/m <span id="val-tpm" class="mono">0</span></span>
-            <span>latency <span id="val-latency" class="mono">0ms</span></span>
-        </div>
-        <div class="clock mono" id="clock">00:00:00</div>
-    </div>
-
-    <div class="dashboard-grid">
-        
+    <main class="dashboard-grid">
         <!-- LEFT COLUMN -->
-        <div class="col left-col">
-            
-            <!-- Panel 1: Metrics -->
-            <div class="panel metrics-panel">
-                <div class="panel-label">METRICS</div>
-                <div class="big-metric-wrap">
-                    <div class="big-metric" id="val-success">100%</div>
-                    <div class="metric-sub">success rate</div>
-                </div>
-                <div class="bars-container">
-                    <div class="bar-row">
-                        <div class="bar-label">cpu</div>
-                        <div class="bar-track"><div class="bar-fill" id="bar-cpu" style="width: 0%; background: var(--accent-blue);"></div></div>
-                        <div class="bar-val" id="pct-cpu">0%</div>
-                    </div>
-                    <div class="bar-row">
-                        <div class="bar-label">memory</div>
-                        <div class="bar-track"><div class="bar-fill" id="bar-mem" style="width: 0%; background: var(--accent-purple);"></div></div>
-                        <div class="bar-val" id="pct-mem">0%</div>
-                    </div>
-                    <div class="bar-row">
-                        <div class="bar-label">tokens</div>
-                        <div class="bar-track"><div class="bar-fill" id="bar-tok" style="width: 0%; background: var(--accent-green);"></div></div>
-                        <div class="bar-val" id="pct-tok">0%</div>
+        <div class="col-left">
+            <div class="panel">
+                <div class="panel-header"><span class="icon">⊚</span> SYSTEM VITALS</div>
+                <div class="panel-content flex-col center-items">
+                    <svg class="donut-ring" viewBox="0 0 120 120" width="110" height="110">
+                        <circle class="donut-track" cx="60" cy="60" r="54"/>
+                        <circle class="donut-fill" id="ring-success" cx="60" cy="60" r="54"/>
+                        <text class="donut-num" x="60" y="56" id="val-success">0</text>
+                        <text class="donut-pct" x="60" y="72">%</text>
+                    </svg>
+                    
+                    <div class="vitals-rows w-full">
+                        <div class="vital-row">
+                            <span class="vital-icon cpu-icon">■</span>
+                            <span class="vital-label">CPU</span>
+                            <div class="vital-track"><div class="vital-fill" id="bar-cpu"></div></div>
+                            <span class="vital-val mono" id="pct-cpu">0%</span>
+                        </div>
+                        <div class="vital-row">
+                            <span class="vital-icon mem-icon">■</span>
+                            <span class="vital-label">MEM</span>
+                            <div class="vital-track"><div class="vital-fill" id="bar-mem"></div></div>
+                            <span class="vital-val mono" id="pct-mem">0%</span>
+                        </div>
+                        <div class="vital-row">
+                            <span class="vital-icon tok-icon">■</span>
+                            <span class="vital-label">TOK</span>
+                            <div class="vital-track"><div class="vital-fill" id="bar-tok"></div></div>
+                            <span class="vital-val mono" id="pct-tok">0%</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Panel 2: Schedule -->
-            <div class="panel schedule-panel">
-                <div class="panel-label">SCHEDULE</div>
-                <div class="countdown-wrap">
-                    <div class="countdown" id="countdown-val">00:00</div>
-                    <div class="next-task-lbl">next: <span id="next-task-name">WAITING</span></div>
-                </div>
-                <div class="timeline" id="schedule-timeline">
-                    <!-- Dynamic timeline items here -->
+            <div class="panel">
+                <div class="panel-header"><span class="icon">⧗</span> NEXT TRANSMISSION</div>
+                <div class="panel-content">
+                    <div class="countdown-display">
+                        <div id="countdown-val" class="mono pulse-text">00:00</div>
+                        <div id="next-task-name" class="sub-text">WAITING</div>
+                    </div>
+                    <div id="schedule-timeline" class="timeline"></div>
                 </div>
             </div>
 
-            <!-- Panel 3: Rules Engine -->
-            <div class="panel rules-panel">
-                <div class="panel-label">RULES ENGINE</div>
-                <div class="rules-container" id="rules-list">
-                    <!-- Dynamic rules here -->
+            <div class="panel">
+                <div class="panel-header"><span class="icon">☷</span> RULES ENGINE</div>
+                <div class="panel-content no-padding">
+                    <div id="rules-list" class="rules-container"></div>
                 </div>
             </div>
-            
         </div>
 
         <!-- CENTER COLUMN -->
-        <div class="col center-col">
-            
-            <!-- Panel 1: Throughput -->
-            <div class="panel chart-panel">
-                <div class="chart-header">
-                    <div class="panel-label">THROUGHPUT — calls/min</div>
-                    <div class="live-indicator"><span class="live-dot"></span> LIVE</div>
-                </div>
-                <div class="chart-wrap">
+        <div class="col-center">
+            <div class="panel slim-panel">
+                <div class="panel-header"><span class="icon">〰</span> THROUGHPUT</div>
+                <div class="chart-container">
                     <canvas id="chart-throughput"></canvas>
                 </div>
             </div>
 
-            <!-- Panel 2: Neural Feed -->
-            <div class="panel feed-panel">
-                <div class="panel-label">NEURAL FEED — LIVE LOG</div>
-                <div class="feed-header">
-                    <span class="fh-time">TIME</span>
-                    <span class="fh-lvl">LVL</span>
-                    <span class="fh-agent">AGENT</span>
-                    <span class="fh-msg">MESSAGE</span>
-                </div>
-                <div class="feed-body" id="neural-feed">
-                    <!-- Logs go here -->
+            <div class="panel flex-1 log-panel">
+                <div class="panel-header"><span class="icon">☫</span> NEURAL FEED</div>
+                <div class="panel-content no-padding">
+                    <div id="neural-feed" class="log-container"></div>
                 </div>
             </div>
 
-            <!-- Panel 3: Errors & Warnings -->
-            <div class="panel errors-panel">
-                <div class="panel-label">ERRORS & WARNINGS</div>
-                <div class="errors-container" id="errors-list">
-                    <!-- Errors go here -->
+            <div class="panel alert-panel">
+                <div class="panel-header"><span class="icon">⚠</span> ALERTS</div>
+                <div class="panel-content no-padding">
+                    <div id="errors-list" class="errors-container"></div>
                 </div>
             </div>
-
         </div>
 
         <!-- RIGHT COLUMN -->
-        <div class="col right-col">
-            
-            <!-- Panel 1: Personality Config -->
-            <div class="panel personality-panel">
-                <div class="panel-label">PERSONALITY</div>
-                <div class="traits-container" id="traits-list">
-                    <!-- Traits go here -->
-                </div>
-                <div class="config-kv mt-10">
-                    <div class="kv-row"><span class="kv-key">model</span><span class="kv-val" id="conf-model">unknown</span></div>
-                    <div class="kv-row"><span class="kv-key">mode</span><span class="kv-val" id="conf-mode" style="color:var(--accent-green);">AUTO</span></div>
-                    <div class="kv-row"><span class="kv-key">budget</span><span class="kv-val" id="conf-budget">$0.00</span></div>
+        <div class="col-right">
+            <div class="panel">
+                <div class="panel-header"><span class="icon">⎈</span> PERSONA MATRIX</div>
+                <div class="panel-content">
+                    <div id="traits-list" class="traits-container"></div>
+                    <div class="kv-list mt-10">
+                        <div class="kv-row"><span class="kv-key">MODEL</span><span class="kv-val mono" id="conf-model"></span></div>
+                        <div class="kv-row"><span class="kv-key">MODE</span><span class="kv-val mono" id="conf-mode"></span></div>
+                        <div class="kv-row"><span class="kv-key">BUDGET</span><span class="kv-val mono" id="conf-budget"></span></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Panel 2: Latency Chart -->
-            <div class="panel chart-panel">
-                <div class="panel-label">LATENCY — ms</div>
-                <div class="chart-wrap">
+            <div class="panel slim-panel">
+                <div class="panel-header"><span class="icon">↝</span> LATENCY (ms)</div>
+                <div class="chart-container">
                     <canvas id="chart-latency"></canvas>
                 </div>
             </div>
 
-            <!-- Panel 3: Memory State -->
-            <div class="panel memory-panel">
-                <div class="panel-label">MEMORY STATE</div>
-                <div class="context-bar-wrap">
-                    <div class="context-bar-label">context</div>
-                    <div class="bar-track"><div class="bar-fill" id="bar-ctx" style="width: 0%; background: var(--accent-purple);"></div></div>
-                    <div class="context-tokens" id="val-ctx">0 / 0 tokens</div>
-                </div>
-                <div class="config-kv mt-10">
-                    <div class="kv-row"><span class="kv-key">working mem</span><span class="kv-val" id="val-workmem">0</span></div>
-                    <div class="kv-row"><span class="kv-key">last goal</span><span class="kv-val" id="val-lastgoal" style="color:var(--accent-green);">idle</span></div>
-                    <div class="kv-row"><span class="kv-key">db nodes</span><span class="kv-val" id="val-dbnodes">0</span></div>
-                    <div class="kv-row"><span class="kv-key">embeddings</span><span class="kv-val" id="val-embeddings">0</span></div>
-                    <div class="kv-row"><span class="kv-key">pruned</span><span class="kv-val" id="val-pruned">0</span></div>
+            <div class="panel">
+                <div class="panel-header"><span class="icon">⚄</span> MEMORY STATE</div>
+                <div class="panel-content">
+                    <div class="ctx-container">
+                        <div class="ctx-label">CONTEXT WINDOW</div>
+                        <div class="ctx-track"><div class="ctx-fill" id="bar-ctx"></div></div>
+                        <div class="ctx-val mono" id="val-ctx">0 / 0</div>
+                    </div>
+                    <div class="mem-grid">
+                        <div class="mem-cell">
+                            <span class="mem-lbl">WORK MEM</span>
+                            <span class="mem-val mono" id="val-workmem">0</span>
+                        </div>
+                        <div class="mem-cell">
+                            <span class="mem-lbl">DB NODES</span>
+                            <span class="mem-val mono" id="val-dbnodes">0</span>
+                        </div>
+                        <div class="mem-cell">
+                            <span class="mem-lbl">EMBEDS</span>
+                            <span class="mem-val mono" id="val-embeddings">0</span>
+                        </div>
+                        <div class="mem-cell">
+                            <span class="mem-lbl">PRUNED</span>
+                            <span class="mem-val mono" id="val-pruned">0</span>
+                        </div>
+                    </div>
+                    <div class="last-goal mt-10">
+                        <span class="goal-lbl">LAST DIRECTIVE</span>
+                        <div id="val-lastgoal" class="goal-val">...</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Panel 4: Success Rate Chart -->
-            <div class="panel chart-panel">
-                <div class="panel-label">SUCCESS RATE</div>
-                <div class="chart-wrap">
+            <div class="panel slim-panel">
+                <div class="panel-header"><span class="icon">◎</span> SUCCESS RATE (%)</div>
+                <div class="chart-container">
                     <canvas id="chart-success"></canvas>
                 </div>
             </div>
 
-            <!-- Panel 5: API Connections -->
-            <div class="panel api-health-panel">
-                <div class="panel-label">API CONNECTIONS</div>
-                <div class="api-health-list" id="api-health-list">
-                    <div class="api-row" id="api-nvidia">
-                        <div class="api-dot checking" id="dot-nvidia"></div>
+            <div class="panel">
+                <div class="panel-header"><span class="icon">⑆</span> API CONNECTIONS</div>
+                <div class="panel-content">
+                    <div class="api-row">
+                        <div id="dot-nvidia" class="api-status-icon">◎</div>
                         <div class="api-info">
-                            <span class="api-name">NVIDIA NIM</span>
-                            <span class="api-model mono">meta/llama-3.1-70b</span>
+                            <span class="api-name">NVIDIA</span>
+                            <span id="status-nvidia" class="api-status-text">WAITING</span>
                         </div>
-                        <div class="api-status-wrap">
-                            <span class="api-status-text" id="status-nvidia">CHECKING…</span>
-                            <span class="api-latency mono" id="latency-nvidia"></span>
-                        </div>
+                        <span id="latency-nvidia" class="api-latency mono">--ms</span>
                     </div>
-                    <div class="api-divider"></div>
-                    <div class="api-row" id="api-bluesky">
-                        <div class="api-dot checking" id="dot-bluesky"></div>
+                    <div class="api-row">
+                        <div id="dot-bluesky" class="api-status-icon">◎</div>
                         <div class="api-info">
                             <span class="api-name">BLUESKY</span>
-                            <span class="api-model mono">bsky.social</span>
+                            <span id="status-bluesky" class="api-status-text">WAITING</span>
                         </div>
-                        <div class="api-status-wrap">
-                            <span class="api-status-text" id="status-bluesky">CHECKING…</span>
-                            <span class="api-latency mono" id="latency-bluesky"></span>
-                        </div>
+                        <span id="latency-bluesky" class="api-latency mono">--ms</span>
                     </div>
-                    <div class="api-last-checked mono" id="api-last-checked">last checked: —</div>
+                    <div class="api-last-check mt-5">
+                        <span class="check-lbl">LAST CHECK:</span>
+                        <span id="api-last-checked" class="check-val mono">--</span>
+                    </div>
                 </div>
             </div>
-
-
+        </div>
+    </main>
+    
+    <div class="wrapper">
+      <div class="floor"></div>
+      <div class="candles">
+        <div class="candle1">
+          <div class="candle1__stick"></div>
+          <div class="candle1__eyes">
+            <span class="candle1__eyes-one"></span>
+            <span class="candle1__eyes-two"></span>
+          </div>
+          <div class="candle1__mouth"></div>
+        </div>
+        <div class="candle2">
+          <div class="candle2__stick"></div>
+          <div class="candle2__eyes">
+            <span class="candle2__eyes-one"></span>
+            <span class="candle2__eyes-two"></span>
+          </div>
+        </div>
+        <div class="candle__smoke-one"></div>
+        <div class="candle__smoke-two"></div>
+        <div class="candle2__fire"></div>
+        <div class="light__wave"></div>
+      </div>
     </div>
-
+    
     <script src="script.js"></script>
 </body>
 </html>

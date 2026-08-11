@@ -13,6 +13,44 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
+# ── Load model name from .env at startup ──────────────────────────────────────
+def _load_env_model():
+    env_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")), ".env")
+    model = "meta/llama-3.1-70b-instruct"
+    if os.path.exists(env_path):
+        with open(env_path, "r") as f:
+            for line in f:
+                key = line.split("=")[0].strip().lower()
+                if key in ("nim_model", "nvidia_nim_model"):
+                    model = line.strip().split("=", 1)[1].strip()
+                    break
+    return model
+
+_ACTIVE_MODEL = _load_env_model()
+
+# ── Load personality seed from personality_seed.json ──────────────────────────
+def _load_personality_seed():
+    seed_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+                             "asomien", "config", "personality_seed.json")
+    traits = {}
+    if os.path.exists(seed_path):
+        try:
+            with open(seed_path, "r", encoding="utf-8") as f:
+                seed = json.load(f)
+            for t in seed.get("core_traits", []) + seed.get("adaptive_traits", []):
+                name = t.get("trait_name", "").replace("_score", "").replace("_index", "")
+                name = name.replace("_balance", "").replace("_aversion", "")
+                name = name.replace("_frequency", "").replace("_enthusiasm", "")
+                if name:
+                    traits[name] = round(float(t.get("value", 0.5)), 2)
+        except Exception:
+            pass
+    if not traits:
+        traits = {"relatability": 0.95, "chaos_warmth": 0.75, "self_awareness": 0.90}
+    return traits
+
+_PERSONALITY_SEED = _load_personality_seed()
+
 _NEXT_TASK_EPOCH = int(time.time()) + 1800
 _UPTIME_START = int(time.time()) - 3600
 
@@ -146,7 +184,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             "tasks_completed": 0,
             "success_rate": 100.0,
             "tokens_per_min": 0,
-            "latency_ms": 120,
+            "latency_ms": 0,
             "cpu_pct": cpu_pct,
             "memory_pct": mem_pct,
             "token_ctx_pct": 0,
@@ -157,16 +195,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             "next_task_epoch": 0,
             "schedule": [],
             "active_rules": [
-                {"name": "lowercase-only", "active": True},
-                {"name": "no-advice", "active": True},
-                {"name": "gen-z-slang", "active": True}
+                {"name": "lowercase-always", "active": True},
+                {"name": "no-advice-ever", "active": True},
+                {"name": "gen-z-voice", "active": True}
             ],
-            "personality": {
-                "irony": 0.9,
-                "chaos": 0.7,
-                "relatability": 0.8
-            },
-            "model": "meta/llama-3.1-70b-instruct",
+            "personality": _PERSONALITY_SEED,
+            "model": _ACTIVE_MODEL,
             "mode": "AUTO",
             "working_memory": 0,
             "db_nodes": 0,
@@ -246,41 +280,53 @@ class DashboardHandler(BaseHTTPRequestHandler):
         # Read true Personality Traits and Memory State from DB if exist
         try:
             with sqlite3.connect(os.path.join(DATA_DIR, "memory.db")) as conn:
-                # Personality
+                # Personality — personality_traits table is often empty; keep seed as fallback
                 cursor = conn.execute("SELECT trait_name, value FROM personality_traits")
                 traits = {row[0]: row[1] for row in cursor.fetchall()}
-                if traits: data["personality"] = traits
+                if traits:
+                    data["personality"] = traits
+                # else: keep _PERSONALITY_SEED which was set as default above
                 
                 # Memory State
                 topics_cnt = conn.execute("SELECT COUNT(*) FROM topics").fetchone()[0]
-                active_nodes = conn.execute("SELECT COUNT(*) FROM research_nodes WHERE is_active=1").fetchone()[0]
-                inactive_nodes = conn.execute("SELECT COUNT(*) FROM research_nodes WHERE is_active=0").fetchone()[0]
+                try:
+                    active_nodes = conn.execute("SELECT COUNT(*) FROM research_nodes WHERE is_active=1").fetchone()[0]
+                    inactive_nodes = conn.execute("SELECT COUNT(*) FROM research_nodes WHERE is_active=0").fetchone()[0]
+                except Exception:
+                    active_nodes = conn.execute("SELECT COUNT(*) FROM research_nodes").fetchone()[0]
+                    inactive_nodes = 0
                 
-                data["db_nodes"] = topics_cnt + active_nodes
+                data["db_nodes"] = topics_cnt + active_nodes + inactive_nodes
                 data["working_memory"] = active_nodes
-                data["pruned_tokens"] = inactive_nodes * 120 # rough estimate of pruned context
-                data["embeddings"] = data["db_nodes"] * 1536 # common embedding dimension count
+                data["pruned_tokens"] = inactive_nodes * 120  # rough estimate of pruned context
+                data["embeddings"] = data["db_nodes"]  # real node count, not a fake multiplied dim
                 
                 # Tasks completed (posts)
                 posts_cnt = conn.execute("SELECT COUNT(*) FROM posts").fetchone()[0]
+                published_cnt = conn.execute("SELECT COUNT(*) FROM posts WHERE status='published'").fetchone()[0]
                 if posts_cnt > 0:
-                    data["tasks_completed"] = posts_cnt
+                    data["tasks_completed"] = published_cnt
 
-                # Rules
-                rules_cursor = conn.execute("SELECT rule_text FROM rules WHERE is_active=1 LIMIT 3")
-                active_rules = [{"name": r[0][:20]+"...", "active": True} for r in rules_cursor.fetchall()]
+                # Rules — use creative_rules table (not the non-existent 'rules' table)
+                rules_cursor = conn.execute("SELECT rule_text FROM creative_rules WHERE is_active=1 ORDER BY confidence DESC LIMIT 5")
+                active_rules = [{"name": r[0].strip(), "active": True} for r in rules_cursor.fetchall()]
                 if active_rules:
                     data["active_rules"] = active_rules
-        except Exception as e: 
+        except Exception as e:
             pass
 
-        # Directives (Goals)
+        # Directives (Goals) — show last directive content snippet
         try:
             with sqlite3.connect(os.path.join(DATA_DIR, "directives.db")) as conn:
-                last_dir = conn.execute("SELECT directive_type FROM directives ORDER BY start_time DESC LIMIT 1").fetchone()
+                last_dir = conn.execute(
+                    "SELECT directive_type, content FROM directives WHERE status='active' ORDER BY start_time DESC LIMIT 1"
+                ).fetchone()
                 if last_dir:
-                    data["last_goal_done"] = last_dir[0]
-        except: pass
+                    dtype = last_dir[0] or "directive"
+                    content_snip = (last_dir[1] or "")[:60].strip()
+                    data["last_goal_done"] = f"{dtype}: {content_snip}…" if content_snip else dtype
+        except:
+            pass
 
         # Parse logs
         actions_log = os.path.join(LOGS_DIR, "actions.log")
@@ -333,26 +379,49 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     if data["tasks_completed"] == 0:
                         data["tasks_completed"] = len(lines)
 
-                    # tokens_per_min: count LLM calls in last 50 log lines
-                    # Each "POST https://integrate.api.nvidia.com" line = 1 LLM call
-                    llm_calls = sum(1 for l in lines if "integrate.api.nvidia.com" in l)
-                    # Estimate: each call processes ~350 tokens in/out, over a 30-min window
-                    data["tokens_per_min"] = int((llm_calls * 350) / 30) if llm_calls > 0 else 0
-
-                    # latency_ms: parse real httpx response times from log if available
-                    # Otherwise fall back to 0 (don't fake it)
-                    import re
-                    latencies = []
+                    # tokens_per_min: count actual LLM-invoking actions in last 50 log lines.
+                    # These actions call the NIM API: draft_content, refine_draft,
+                    # generate_reply, generate_directive, generated_directive
+                    _LLM_ACTIONS = {
+                        "draft_content", "refine_draft", "generate_reply",
+                        "generate_directive", "generated_directive",
+                        "instantiate_hook",
+                    }
+                    llm_calls = 0
                     for l in lines:
-                        m = re.search(r'HTTP/[\d.]+ (\d{3})', l)
-                        if m:
-                            # We can't get exact ms from log lines, but connection errors = high latency
-                            status_code = int(m.group(1))
-                            if status_code == 200:
-                                latencies.append(180)  # baseline for a successful Bluesky call
-                            elif status_code == 400:
-                                latencies.append(250)
-                    data["latency_ms"] = int(sum(latencies) / len(latencies)) if latencies else 0
+                        try:
+                            entry_j = json.loads(l)
+                            if entry_j.get("action", "") in _LLM_ACTIONS:
+                                llm_calls += 1
+                        except Exception:
+                            pass
+                    # Each call ≈ 600 tokens (system + user + response), window = 30 min
+                    data["tokens_per_min"] = int((llm_calls * 600) / 30) if llm_calls > 0 else 0
+
+                    # latency_ms: measure real time delta between consecutive LLM actions.
+                    # We look for draft_content → refine_draft pairs and compute the gap.
+                    import re as _re
+                    import datetime as _dt_mod
+                    lm_ts_list = []
+                    for l in lines:
+                        try:
+                            entry_j = json.loads(l)
+                            if entry_j.get("action", "") in _LLM_ACTIONS:
+                                ts_str = entry_j.get("timestamp", "")
+                                if ts_str:
+                                    ts_dt = _dt_mod.datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                                    lm_ts_list.append(ts_dt)
+                        except Exception:
+                            pass
+                    if len(lm_ts_list) >= 2:
+                        deltas_ms = [
+                            int((lm_ts_list[i+1] - lm_ts_list[i]).total_seconds() * 1000)
+                            for i in range(len(lm_ts_list) - 1)
+                            if 500 < (lm_ts_list[i+1] - lm_ts_list[i]).total_seconds() * 1000 < 60000
+                        ]
+                        data["latency_ms"] = int(sum(deltas_ms) / len(deltas_ms)) if deltas_ms else 0
+                    else:
+                        data["latency_ms"] = 0
 
                     # success_rate: based on real error ratio
                     total_actions = len([l for l in lines if '"level": "info"' in l or '"level":"info"' in l])

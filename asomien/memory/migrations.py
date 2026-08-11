@@ -224,7 +224,8 @@ CREATE TABLE IF NOT EXISTS campaigns (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS monetization_signals;
+-- Removed: DROP TABLE IF EXISTS monetization_signals (was destroying data on every restart)
+
 
 CREATE TABLE IF NOT EXISTS reports (
     id TEXT PRIMARY KEY,
@@ -242,6 +243,13 @@ CREATE TABLE IF NOT EXISTS warmup_log (
     replies_published INTEGER DEFAULT 0,
     phase_status TEXT DEFAULT 'active',
     logged_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS follow_history (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    did TEXT NOT NULL UNIQUE,
+    followed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status TEXT DEFAULT 'active'
 );
 
 CREATE INDEX IF NOT EXISTS idx_directives_status ON directives(status);

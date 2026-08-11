@@ -224,3 +224,22 @@ class ThreadsAdapter(BasePlatformAdapter):
             logger.warning("Failed to fetch replies for post %s: %s", media_id, e)
             return []
 
+    def get_mentions(self, **kwargs: Any) -> list[dict[str, Any]]:
+        """Fetch mentions for the authenticated user."""
+        try:
+            params = {
+                "access_token": self.access_token,
+                "fields": "id,text",
+            }
+            params.update(kwargs)
+            
+            payload = self._request(
+                method="GET",
+                endpoint=f"{self.user_id}/mentions",
+                params=params,
+            )
+            return payload.get("data", [])
+        except requests.HTTPError as e:
+            logger.warning("Failed to fetch mentions: %s", e)
+            return []
+

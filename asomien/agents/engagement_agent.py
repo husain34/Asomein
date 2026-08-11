@@ -131,6 +131,17 @@ class EngagementAgent(BaseAgent):
 
                 if response:
                     reply = response.strip()
+
+                    # Refusal guard — drop LLM safety refusals silently, never publish them
+                    _REFUSAL_PHRASES = [
+                        "i cannot", "cannot provide", "cannot help",
+                        "as an ai", "i am unable", "i can't help",
+                        "i cannot assist", "cannot assist",
+                    ]
+                    if any(phrase in reply.lower() for phrase in _REFUSAL_PHRASES):
+                        logger.warning("[%s] LLM returned a refusal. Dropping reply silently.", self.name)
+                        return None
+
                     attempts = 0
                     while len(reply) > 290 and attempts < 3:
                         logger.info("[%s] Reply too long (%d chars). Asking LLM to shorten.", self.name, len(reply))
@@ -144,11 +155,11 @@ class EngagementAgent(BaseAgent):
                         if shorten_response:
                             reply = shorten_response.strip()
                         attempts += 1
-                        
+
                     # Fallback if it STILL fails after 3 attempts
                     if len(reply) > 290:
                         reply = reply[:287] + "..."
-                        
+
                     return reply
 
         except Exception as e:
@@ -163,6 +174,9 @@ class EngagementAgent(BaseAgent):
 
     def _process_replies(self) -> None:
         """Task 1: Check the adapter for new mentions or replies on recent posts."""
+        if not self.memory or not self.adapter:
+            logger.warning("[%s] No memory or adapter. Skipping _process_replies.", self.name)
+            return
         try:
             import sqlite3
             with sqlite3.connect(self.memory.db_path) as conn:
@@ -196,6 +210,24 @@ class EngagementAgent(BaseAgent):
                         if cur.fetchone()[0] == 0:
                             all_unanswered_replies.append(reply)
 
+            try:
+                if hasattr(self.adapter, "get_mentions"):
+                    mentions = self.adapter.get_mentions()
+                    for mention in mentions:
+                        mention_id = mention.get("id")
+                        if not mention_id or not str(mention.get("text")).strip():
+                            continue
+                        
+                        with sqlite3.connect(self.memory.db_path) as conn:
+                            cur = conn.execute(
+                                "SELECT COUNT(*) FROM posts WHERE reply_to_threads_id = ?",
+                                (mention_id,)
+                            )
+                            if cur.fetchone()[0] == 0:
+                                all_unanswered_replies.append(mention)
+            except Exception as e:
+                logger.error("[%s] Failed to fetch mentions: %s", self.name, e)
+
             if not all_unanswered_replies:
                 return
                 
@@ -204,12 +236,17 @@ class EngagementAgent(BaseAgent):
                 reply_text = self.generate_reply(mention.get("text", ""), images=mention.get("images", []))
                 self._human_type_delay()
 
+                # Refusal guard — generate_reply returns None when LLM refuses
+                if not reply_text:
+                    logger.info("[%s] Skipping reply — generate_reply returned None (refusal or empty).", self.name)
+                    continue
+
                 # FIX BUG-15: Store the PostNode AFTER a successful publish call.
                 # Previously, memory.store() was called with status="published" BEFORE
                 # the API call, meaning a failed publish left a ghost "published" record
                 # that would make the duplicate-reply guard skip this reply forever.
                 try:
-                    self.adapter.publish_reply(text=reply_text, parent_post_id=mention.get("id"))
+                    published_uri = self.adapter.publish_reply(text=reply_text, parent_post_id=mention.get("id"))
                     logger.info("[%s] Successfully replied to comment %s", self.name, mention.get("id"))
 
                     if self.memory:
@@ -219,6 +256,7 @@ class EngagementAgent(BaseAgent):
                             post_type="reply",
                             is_reply=True,
                             reply_to_threads_id=mention.get("id"),
+                            threads_post_id=published_uri or "",
                             status="published"
                         )
                         self.memory.store(node)
@@ -352,7 +390,7 @@ class EngagementAgent(BaseAgent):
                 return
             followers = self.adapter.get_followers(limit=20)
             for f in followers:
-                if f.get("viewer_following") is None:
+                if not f.get("viewer_following"):
                     # FIX BUG-16: Guard against None DID before calling _record_follow.
                     # f.get("did") returns None if the key is absent; passing None to
                     # adapter.follow() or the DB INSERT would cause silent bad data.
@@ -412,8 +450,8 @@ class EngagementAgent(BaseAgent):
                 post_likes = post.get("likes", 0)
                 post_replies = post.get("replies", 0)
                 
-                # Check engagement threshold
-                if post_likes < 50 and post_replies < 4:
+                # Check engagement threshold — lowered from 50/4 to 10/2 to find more posts to engage
+                if post_likes < 10 and post_replies < 2:
                     continue
 
                 if len(text) < 10:
@@ -482,10 +520,15 @@ class EngagementAgent(BaseAgent):
                         
                     likes_given += 1
                     
-                    if comments_given < 1:
+                    if comments_given < 3:  # allow up to 3 organic comments per cycle
                         is_quote = score >= 9
                         reply_text = self.generate_reply(text, is_quote=is_quote, images=images)
                         self._human_type_delay()
+
+                        # Refusal guard — generate_reply returns None when LLM refuses
+                        if not reply_text:
+                            logger.info("[%s] Skipping comment — generate_reply returned None (refusal).", self.name)
+                            continue
                         
                         from asomien.memory.nodes import PostNode
                         node = PostNode(
@@ -495,14 +538,25 @@ class EngagementAgent(BaseAgent):
                             reply_to_threads_id=post_uri,
                             status="published"
                         )
-                        self.memory.store(node)
+                        # NOTE: memory.store(node) is only called AFTER successful publish
+                        # inside each try/except block below to avoid ghost records.
                         
                         if is_quote:
-                            self.adapter.quote_post(text=reply_text, uri=post_uri, cid=post.get("cid"))
-                            logger.info("[%s] Organically QUOTE-POSTED global post %s", self.name, post_uri)
+                            try:
+                                published_uri = self.adapter.quote_post(text=reply_text, uri=post_uri, cid=post.get("cid"))
+                                node.threads_post_id = published_uri or ""
+                                self.memory.store(node)
+                                logger.info("[%s] Organically QUOTE-POSTED global post %s", self.name, post_uri)
+                            except Exception as pub_err:
+                                logger.error("[%s] Failed to quote post %s: %s", self.name, post_uri, pub_err)
                         else:
-                            self.adapter.publish_reply(text=reply_text, parent_post_id=post_uri)
-                            logger.info("[%s] Organically commented on global post %s", self.name, post_uri)
+                            try:
+                                published_uri = self.adapter.publish_reply(text=reply_text, parent_post_id=post_uri)
+                                node.threads_post_id = published_uri or ""
+                                self.memory.store(node)
+                                logger.info("[%s] Organically commented on global post %s", self.name, post_uri)
+                            except Exception as pub_err:
+                                logger.error("[%s] Failed to comment on %s: %s", self.name, post_uri, pub_err)
                             
                         comments_given += 1
 

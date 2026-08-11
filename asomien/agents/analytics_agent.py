@@ -49,7 +49,8 @@ class AnalyticsAgent(BaseAgent):
         try:
             from types import SimpleNamespace
 
-            # 1. Query the last 20 published posts from memory.db
+            # 1. Query the last 100 published posts (root posts + quotes + replies) from memory.db.
+            # 100 covers ~50 days of posting at max 2 root posts/day, plus all quotes and replies.
             with sqlite3.connect("data/memory.db") as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.execute(
@@ -60,7 +61,7 @@ class AnalyticsAgent(BaseAgent):
                       AND threads_post_id != ''
                       AND threads_post_id IS NOT NULL
                     ORDER BY COALESCE(actual_publish_time, created_at) DESC
-                    LIMIT 20
+                    LIMIT 100
                     """
                 )
                 rows = cursor.fetchall()
@@ -238,9 +239,77 @@ class AnalyticsAgent(BaseAgent):
                 "total_shares": int(row["shares"] or 0),
                 "avg_creator_engagement_score": float(row["avg_score"] or 0.0),
             }
+
+            # Persist daily stats so dashboard and weekly analysis can read them
+            try:
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO daily_stats
+                        (id, date, posts_published, total_views, total_likes,
+                         total_replies_received, total_reposts, total_quotes,
+                         total_shares, avg_creator_engagement_score)
+                    VALUES (lower(hex(randomblob(8))), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        result["date"],
+                        result["posts_published"],
+                        result["total_views"],
+                        result["total_likes"],
+                        result["total_replies_received"],
+                        result["total_reposts"],
+                        result["total_quotes"],
+                        result["total_shares"],
+                        result["avg_creator_engagement_score"],
+                    ),
+                )
+                conn.commit()
+            except Exception as e:
+                logger.error("[AnalyticsAgent] Failed to persist daily stats: %s", e)
+
             return result
         finally:
             conn.close()
+
+    def get_latest_metrics(self) -> Optional[dict[str, Any]]:
+        """Return the most recent day's aggregated stats."""
+        try:
+            return self.aggregate_daily_stats()
+        except Exception as e:
+            logger.error("[AnalyticsAgent] get_latest_metrics failed: %s", e)
+            return None
+
+    def get_posts_published_today(self) -> int:
+        """Return count of posts published today (used by scheduler guards)."""
+        try:
+            today = date.today().isoformat()
+            with sqlite3.connect("data/memory.db") as conn:
+                row = conn.execute(
+                    "SELECT COUNT(*) FROM posts WHERE status='published' AND is_reply=0 AND date(created_at)=?",
+                    (today,)
+                ).fetchone()
+                return int(row[0] or 0)
+        except Exception as e:
+            logger.error("[AnalyticsAgent] get_posts_published_today failed: %s", e)
+            return 0
+
+    def get_hours_since_last_post(self) -> float:
+        """Return hours since the last published post (used by scheduler guards)."""
+        try:
+            with sqlite3.connect("data/memory.db") as conn:
+                row = conn.execute(
+                    "SELECT MAX(COALESCE(actual_publish_time, created_at)) FROM posts WHERE status='published' AND is_reply=0"
+                ).fetchone()
+                if row and row[0]:
+                    from datetime import datetime, timezone
+                    last_dt = datetime.fromisoformat(row[0].replace("Z", "+00:00"))
+                    if last_dt.tzinfo is None:
+                        last_dt = last_dt.replace(tzinfo=timezone.utc)
+                    delta = datetime.now(timezone.utc) - last_dt
+                    return delta.total_seconds() / 3600.0
+        except Exception as e:
+            logger.error("[AnalyticsAgent] get_hours_since_last_post failed: %s", e)
+        return 999.0
+
 
     def log_warmup_day(self, day_number: Optional[int] = None) -> None:
         # FIX BUG-03: The old fallback used strftime("%d") which gives the calendar

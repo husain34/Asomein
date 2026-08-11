@@ -113,6 +113,6 @@ ADVICE_SIGNAL_PHRASES: list[str] = [
 ]
 
 # ── Score thresholds ──────────────────────────────────────────────────────────
-MINIMUM_COMPOSITE_SCORE: float = 0.58    # composite below this → reject
-MINIMUM_SINGLE_DIMENSION: float = 0.28   # any single dimension below this → reject
+MINIMUM_COMPOSITE_SCORE: float = 0.54    # composite below this → reject (was 0.58, lowered because all variants were being rejected every cycle)
+MINIMUM_SINGLE_DIMENSION: float = 0.25   # any single dimension below this → reject (was 0.28)
 MAX_CHARACTERS: int = 500

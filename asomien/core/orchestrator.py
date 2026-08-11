@@ -7,6 +7,9 @@ Master Orchestrator acting as the central hub for the system.
 from __future__ import annotations
 
 import logging
+import sqlite3
+import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -34,15 +37,14 @@ class MasterOrchestrator:
         self.adapter = adapter
         self.memory = memory
 
-        # Verify DB config tables
+        # Verify DB config tables — use the ACTUAL table name 'creative_rules', not 'rules'
         if self.memory:
-            import sqlite3
             try:
                 with sqlite3.connect(self.memory.db_path) as conn:
                     cursor = conn.cursor()
-                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='rules'")
+                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='creative_rules'")
                     if not cursor.fetchone():
-                        logger.error("[MasterOrchestrator] Required configuration table 'rules' missing from DB.")
+                        logger.error("[MasterOrchestrator] Required table 'creative_rules' missing from DB.")
             except Exception as e:
                 logger.error("[MasterOrchestrator] Failed to verify configuration tables: %s", e)
 
@@ -79,6 +81,10 @@ class MasterOrchestrator:
             scheduled_base,
             jitter_offset,
         )
+        # Enforce warmup post cap before any content generation
+        if not self.enforce_warmup_caps(is_reply=False):
+            logger.info("[MasterOrchestrator] Publish cycle blocked by warmup caps.")
+            return
         if self.content_agent and self.critic_agent and self.adapter:
             try:
                 context = self.content_agent._get_context()
@@ -119,16 +125,13 @@ class MasterOrchestrator:
                     logger.info("[MasterOrchestrator] Successfully published! ID: %s", post_id)
                     
                     if self.memory:
-                        import sqlite3
-                        import uuid
-                        from datetime import datetime
                         with sqlite3.connect(self.memory.db_path) as conn:
                             conn.execute(
                                 """
-                                INSERT INTO posts (id, content, status, is_reply, hook_template_used, threads_post_id, created_at)
-                                VALUES (?, ?, 'published', 0, ?, ?, ?)
+                                INSERT INTO posts (id, content, platform, status, is_reply, hook_template_used, threads_post_id, created_at)
+                                VALUES (?, ?, 'bluesky', 'published', 0, ?, ?, ?)
                                 """,
-                                (str(uuid.uuid4()), best_draft, template["id"], post_id, datetime.now().isoformat())
+                                (str(uuid.uuid4()), best_draft, template["id"], post_id, datetime.now(timezone.utc).isoformat())
                             )
                 else:
                     logger.warning("[MasterOrchestrator] No drafts passed the critic.")
@@ -266,14 +269,11 @@ class MasterOrchestrator:
         import time
         import threading
         
-        # Spawn the FastAPI server thread
+        # APScheduler handles all job scheduling — this just keeps the main thread alive
         try:
-            from asomien.web.app import start_server
-            server_thread = threading.Thread(target=start_server, args=(self,), daemon=True)
-            server_thread.start()
-            logger.info("[MasterOrchestrator] Web dashboard spawned on port 8000.")
-        except ImportError as e:
-            logger.warning("[MasterOrchestrator] FastAPI not available. Dashboard disabled. (%s)", e)
+            pass  # Dashboard server started externally via web_dashboard/server.py
+        except Exception as e:
+            logger.warning("[MasterOrchestrator] Dashboard startup error: %s", e)
 
         try:
             while True:

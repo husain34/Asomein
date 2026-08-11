@@ -30,7 +30,7 @@ function createSparkline(canvasId, color, seedValue, yMin, yMax) {
                 borderWidth: 1.5,
                 pointRadius: 0,
                 fill: true,
-                backgroundColor: color + '18',
+                backgroundColor: color + '14', // 0.08 opacity (hex 14)
                 tension: 0.45,
             }],
         },
@@ -47,12 +47,12 @@ function createSparkline(canvasId, color, seedValue, yMin, yMax) {
     });
 }
 
-const throughputChart = createSparkline('chart-throughput', '#1d4ed8', 22, 0, 50);
-const latencyChart    = createSparkline('chart-latency',    '#7c3aed', 300, 0, 600);
-const successChart    = createSparkline('chart-success',    '#22c55e', 95,  0, 100);
+const throughputChart = createSparkline('chart-throughput', '#00e5ff', 22, -2, 50); // cyan
+const latencyChart    = createSparkline('chart-latency',    '#ffab40', 300, -10, 600); // amber
+const successChart    = createSparkline('chart-success',    '#00e676', 95,  -5, 100); // green
 
 function pushPoint(chart, value) {
-    chart.data.labels.push(chart.data.labels.length);
+    chart.data.labels.push('');
     chart.data.labels.shift();
     chart.data.datasets[0].data.push(value);
     chart.data.datasets[0].data.shift();
@@ -76,7 +76,7 @@ setInterval(() => {
     if (diff <= 0) {
         cdEl.textContent = "00:00";
         if (diff === 0) {
-            cdEl.style.color = '#7c3aed';
+            cdEl.style.color = '#00e5ff';
             cdEl.style.opacity = '0.4';
             setTimeout(() => { cdEl.style.opacity = '1'; }, 500);
         }
@@ -85,7 +85,7 @@ setInterval(() => {
     const m = Math.floor(diff / 60).toString().padStart(2, '0');
     const s = (diff % 60).toString().padStart(2, '0');
     cdEl.textContent = `${m}:${s}`;
-    cdEl.style.color = '#7c3aed';
+    cdEl.style.color = '#00e5ff';
 }, 1000);
 
 // Format Time helper
@@ -105,19 +105,20 @@ function pollStatus() {
             const statusEl = document.getElementById('status-text');
             
             const stateMap = {
-                running: { label: 'AUTONOMOUS', color: '#22c55e' },
-                idle:    { label: 'IDLE',       color: '#d97706' },
-                error:   { label: 'ERROR',      color: '#ef4444' },
-                paused:  { label: 'PAUSED',     color: '#6b7280' },
+                running: { label: 'AUTONOMOUS', color: '#00e676' },
+                idle:    { label: 'IDLE',       color: '#ffab40' },
+                error:   { label: 'ERROR',      color: '#ff5252' },
+                paused:  { label: 'PAUSED',     color: '#00e5ff' }, // cyan
             };
             const s = stateMap[data.agent_state] || stateMap.idle;
-            orbEl.style.background = s.color;
+            orbEl.style.backgroundColor = s.color;
+            orbEl.style.boxShadow = `0 0 10px ${s.color}`;
             statusEl.textContent = s.label;
             statusEl.style.color = s.color;
 
             // Header stats
             document.getElementById('val-uptime').textContent = formatTime(data.uptime_seconds);
-            document.getElementById('val-latency').textContent = data.latency_ms + 'ms';
+            document.getElementById('val-latency').textContent = data.latency_ms;
             
             if (data.tasks_completed !== lastTasksVal) {
                 animateCount(document.getElementById('val-tasks'), lastTasksVal, data.tasks_completed, 800);
@@ -130,9 +131,11 @@ function pollStatus() {
 
             // Left Col - Metrics
             if (data.success_rate !== lastSuccessVal) {
-                animateCount(document.getElementById('val-success'), lastSuccessVal, data.success_rate, 800, '%');
+                animateCount(document.getElementById('val-success'), lastSuccessVal, data.success_rate, 800);
                 lastSuccessVal = data.success_rate;
             }
+            const ring = document.getElementById('ring-success'); 
+            if(ring) ring.style.strokeDashoffset = 339.3 * (1 - data.success_rate/100);
             
             document.getElementById('bar-cpu').style.width = data.cpu_pct + '%';
             document.getElementById('pct-cpu').textContent = Math.round(data.cpu_pct) + '%';
@@ -150,8 +153,12 @@ function pollStatus() {
             data.schedule.forEach(item => {
                 const row = document.createElement('div');
                 row.className = 'tl-item';
-                const dotClass = item.status === 'done' ? 's-done' : (item.status === 'next' ? 's-next' : '');
-                row.innerHTML = `<div class="tl-dot ${dotClass}"></div><div class="tl-time">${item.time}</div><div class="tl-name">${item.name}</div>`;
+                let dotClass = '';
+                let iconChar = '○';
+                if (item.status === 'done') { dotClass = 's-done'; iconChar = '✓'; }
+                else if (item.status === 'next') { dotClass = 's-next'; iconChar = '●'; }
+                else { dotClass = 's-wait'; }
+                row.innerHTML = `<span class="tl-icon ${dotClass}">${iconChar}</span><span class="tl-time mono">${item.time}</span><span class="tl-name">${item.name}</span>`;
                 tlContainer.appendChild(row);
             });
 
@@ -159,16 +166,16 @@ function pollStatus() {
             const rulesList = document.getElementById('rules-list');
             rulesList.innerHTML = '';
             data.active_rules.forEach(rule => {
-                const badgeClass = rule.active ? 'badge-on' : 'badge-off';
+                const badgeClass = rule.active ? 'on' : 'off';
                 const badgeText = rule.active ? 'ON' : 'OFF';
-                rulesList.innerHTML += `<div class="rule-row"><span class="rule-name">${rule.name}</span><span class="rule-badge ${badgeClass}">${badgeText}</span></div>`;
+                rulesList.innerHTML += `<div class="rule-row"><span class="rule-icon">${rule.active ? '✓' : '○'}</span><span class="rule-name">${rule.name}</span><span class="rule-badge ${badgeClass}">${badgeText}</span></div>`;
             });
 
             // Right Col - Personality & Config
             const traitsList = document.getElementById('traits-list');
             traitsList.innerHTML = '';
             for (const [trait, val] of Object.entries(data.personality)) {
-                traitsList.innerHTML += `<div class="trait-row"><span class="trait-lbl">${trait}</span><div class="trait-track"><div class="trait-fill" style="width: ${Math.min(val * 100, 100)}%"></div></div><span class="trait-val">${val.toFixed(1)}</span></div>`;
+                traitsList.innerHTML += `<div class="trait-row"><span class="trait-lbl">${trait}</span><div class="trait-track"><div class="trait-fill" style="width: ${Math.min(val * 100, 100)}%"></div></div><span class="trait-val mono">${val.toFixed(2)}</span></div>`;
             }
             document.getElementById('conf-model').textContent = data.model;
             document.getElementById('conf-mode').textContent = data.mode;
@@ -176,11 +183,9 @@ function pollStatus() {
 
             // Right Col - Memory
             const maxContext = 128000;
-            const currentContext = data.working_memory * 50; // Approx 50 tokens per node to fit UI
+            const currentContext = data.working_memory * 35;
             const ctxPct = Math.min((currentContext / maxContext) * 100, 100);
             document.getElementById('bar-ctx').style.width = ctxPct + '%';
-            document.getElementById('bar-tok').style.width = ctxPct + '%';
-            document.getElementById('pct-tok').textContent = Math.round(ctxPct) + '%';
             document.getElementById('val-ctx').textContent = `${currentContext.toLocaleString()} / ${maxContext.toLocaleString()} tokens`;
             document.getElementById('val-workmem').textContent = data.working_memory;
             document.getElementById('val-lastgoal').textContent = data.last_goal_done;
@@ -194,22 +199,16 @@ function pollStatus() {
                 if (lastLogTimestamp && log.ts <= lastLogTimestamp) return;
                 
                 const row = document.createElement('div');
-                row.className = 'log-entry';
+                row.className = 'log-row';
                 
-                let lvlClass = 'lvl-info';
-                if (log.level === 'WARN') { lvlClass = 'lvl-warn'; row.classList.add('bg-warn'); }
-                if (log.level === 'ERR') { lvlClass = 'lvl-err'; row.classList.add('bg-err'); }
-                if (log.level === 'ACT') lvlClass = 'lvl-act';
-                if (log.level === 'OK') lvlClass = 'lvl-ok';
+                let lvlClass = 'info';
+                if (log.level === 'WARN') { lvlClass = 'warn'; }
+                if (log.level === 'ERR' || log.level === 'ERROR') { lvlClass = 'error'; }
 
-                row.innerHTML = `<span class="log-time">${log.ts.split('T')[1]?.substring(0,8) || log.ts}</span>
-                                 <span class="log-lvl ${lvlClass}">${log.level}</span>
-                                 <span class="log-agent">${log.agent}</span>
-                                 <span class="log-msg">${log.msg}</span>`;
+                row.innerHTML = `<span class="log-time">${log.ts.split('T')[1]?.substring(0,8) || log.ts}</span><span class="log-lvl ${lvlClass}">${log.level}</span><span class="log-agent">${log.agent}</span><span class="log-msg">${log.msg}</span>`;
                 feed.appendChild(row);
                 lastLogTimestamp = log.ts;
                 
-                // Truncate to 100
                 if (feed.children.length > 100) {
                     feed.removeChild(feed.firstChild);
                 }
@@ -220,14 +219,11 @@ function pollStatus() {
             const errList = document.getElementById('errors-list');
             errList.innerHTML = '';
             if (data.errors.length === 0) {
-                errList.innerHTML = '<div style="color:var(--text-muted); padding:20px; text-align:center; font-style:italic;">[ SYSTEM NOMINAL — ZERO ERRORS DETECTED ]</div>';
+                errList.innerHTML = '<div style="color:var(--muted); padding:20px; text-align:center; font-style:italic; font-size:11px;">[ SYSTEM NOMINAL — ZERO ERRORS DETECTED ]</div>';
             } else {
                 data.errors.forEach(err => {
-                    const warnCls = err.level === 'WARN' ? 'warn' : '';
-                    errList.innerHTML += `<div class="err-item ${warnCls}">
-                        <div class="err-msg">${err.msg}</div>
-                        <div class="err-sub">recently · ${err.agent}</div>
-                    </div>`;
+                    const warnCls = err.level === 'WARN' ? 'warn-level' : '';
+                    errList.innerHTML += `<div class="err-item ${warnCls}"><span class="err-icon">${err.level === 'WARN' ? '▲' : '✕'}</span><div class="err-body"><div class="err-msg">${err.msg}</div><div class="err-sub">${err.agent}</div></div></div>`;
                 });
             }
 
@@ -247,8 +243,9 @@ function pollStatus() {
             const orbEl = document.getElementById('status-orb');
             const statusEl = document.getElementById('status-text');
             statusEl.textContent = 'OFFLINE';
-            statusEl.style.color = '#ef4444';
-            orbEl.style.background = '#ef4444';
+            statusEl.style.color = '#ff5252';
+            orbEl.style.backgroundColor = '#ff5252';
+            orbEl.style.boxShadow = '0 0 10px #ff5252';
         });
 }
 
@@ -262,6 +259,15 @@ const STATUS_LABELS = {
     error:       'ERROR',
 };
 
+const STATUS_ICONS = {
+    online:      '✓',
+    offline:     '✕',
+    checking:    '⟳',
+    invalid_key: '▲',
+    no_key:      '◎',
+    error:       '✕',
+};
+
 function updateApiHealth(service, info) {
     if (!info) return;
     const status = info.status || 'checking';
@@ -270,28 +276,102 @@ function updateApiHealth(service, info) {
     const lat    = document.getElementById(`latency-${service}`);
     const lastEl = document.getElementById('api-last-checked');
 
-    // Update dot class
-    dot.className = `api-dot ${status}`;
+    dot.textContent = STATUS_ICONS[status] || '◎';
+    dot.className = `api-status-icon status-${status}`;
 
-    // Update status text + class for color
     txt.textContent = STATUS_LABELS[status] || status.toUpperCase();
-    txt.className   = `api-status-text ${status}`;
+    txt.className   = `api-status-text status-${status}`;
 
-    // Latency
     if (info.latency_ms != null) {
         lat.textContent = `${info.latency_ms}ms`;
     } else {
-        lat.textContent = '';
+        lat.textContent = '--ms';
     }
 
-    // Last checked timestamp (shared line at the bottom)
     if (info.last_checked) {
         const d = new Date(info.last_checked);
-        lastEl.textContent = `last checked: ${d.toLocaleTimeString('en-US', {hour12: false})}`;
+        lastEl.textContent = d.toLocaleTimeString('en-US', {hour12: false});
     }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     pollStatus();
-    setInterval(pollStatus, 2000);
+    setInterval(updateSchedule, 1000);
 });
+
+// Initialize Background Grid
+function initInteractiveBg() {
+    const bg = document.getElementById('interactive-bg');
+    if (!bg) return;
+    
+    let debounceTimer;
+    let cols = 0;
+    let rows = 0;
+    let tiles = [];
+    let lastHovered = null;
+
+    const fillGrid = () => {
+        bg.innerHTML = '';
+        tiles = [];
+        cols = Math.ceil(window.innerWidth / 48);
+        rows = Math.ceil(window.innerHeight / 48);
+        const total = cols * rows;
+        if(total > 2500) return; 
+        
+        bg.style.gridTemplateColumns = `repeat(${cols}, 48px)`;
+        bg.style.gridAutoRows = '48px';
+        
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < total; i++) {
+            const tile = document.createElement('div');
+            tile.className = 'interactive-bg-tile';
+            tiles.push(tile);
+            frag.appendChild(tile);
+        }
+        bg.appendChild(frag);
+        lastHovered = null;
+    };
+    
+    fillGrid();
+    window.addEventListener('resize', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fillGrid, 200);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (tiles.length === 0) return;
+        const col = Math.floor(e.clientX / 48);
+        const row = Math.floor(e.clientY / 48);
+        const tileIndex = row * cols + col;
+        
+        if (lastHovered !== tileIndex && tileIndex >= 0 && tileIndex < tiles.length) {
+            if (lastHovered !== null && tiles[lastHovered]) {
+                tiles[lastHovered].classList.remove('hovered');
+            }
+            if (tiles[tileIndex]) {
+                tiles[tileIndex].classList.add('hovered');
+                lastHovered = tileIndex;
+            }
+        }
+    });
+
+    document.addEventListener('mouseleave', () => {
+        if (lastHovered !== null && tiles[lastHovered]) {
+            tiles[lastHovered].classList.remove('hovered');
+            lastHovered = null;
+        }
+    });
+}
+initInteractiveBg();
+
+// CUTE PET CLICK HANDLER
+const petWrapper = document.querySelector('.wrapper');
+if (petWrapper) {
+    petWrapper.addEventListener('click', function() {
+        if (this.classList.contains('playing-story')) return;
+        this.classList.add('playing-story');
+        setTimeout(() => {
+            this.classList.remove('playing-story');
+        }, 3000);
+    });
+}

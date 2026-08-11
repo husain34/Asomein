@@ -10,6 +10,7 @@ import logging
 import random
 import sqlite3
 import uuid
+import time
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -56,8 +57,84 @@ class CreativeAgent(BaseAgent):
             logger.error("[CreativeAgent] Failed to seed rules: %s", e)
 
     def run(self) -> None:
-        """No autonomous loop for this agent, called synchronously by Orchestrator."""
-        pass
+        """Autonomous loop for the CreativeAgent.
+
+        The agent operates in cycles:
+        1. Check for and seed initial creative rules if needed
+        2. Run reflection on recent posts to generate new rules
+        3. Apply decay to stale creative rules
+        4. Sleep for a configurable period before repeating
+        """
+        self.start()
+        logger.info("[CreativeAgent] Starting autonomous loop.")
+
+        # Seed initial rules on startup
+        self._seed_rules_if_empty()
+
+        while self._running:
+            try:
+                # Run creative reflection if we have recent posts and LLM client
+                if self.memory and self.llm_client:
+                    # Fetch recent posts for reflection
+                    recent_posts = self._get_recent_posts_for_reflection()
+                    if recent_posts:
+                        reflection = self.run_creative_reflection(recent_posts)
+                        if reflection:  # Only update rules if we got meaningful reflection
+                            self.update_rules(reflection)
+
+                # Apply decay to stale rules
+                self.decay_rules()
+
+                # Sleep for the configured interval (default 1 hour)
+                # Using smaller increments to allow for responsive shutdown
+                sleep_interval = 3600  # 1 hour in seconds
+                slept = 0
+                while slept < sleep_interval and self._running:
+                    time.sleep(min(60, sleep_interval - slept))  # Sleep in 1-minute chunks
+                    slept += 60
+
+            except Exception as e:
+                logger.error("[CreativeAgent] Error in autonomous loop: %s", e)
+                # Sleep briefly before retrying to avoid tight error loops
+                time.sleep(60)
+
+        self.stop()
+
+    def _get_recent_posts_for_reflection(self, limit: int = 10) -> list[dict]:
+        """Fetch recent posts from memory for use in creative reflection."""
+        if not self.memory:
+            return []
+
+        try:
+            # Import here to avoid circular imports
+            from asomien.memory.nodes import PostNode
+            with sqlite3.connect(self.memory.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.execute(
+                    """
+                    SELECT content, views, likes, replies, created_at
+                    FROM posts
+                    WHERE status = 'published'
+                    ORDER BY created_at DESC
+                    LIMIT ?
+                    """,
+                    (limit,)
+                )
+                rows = cursor.fetchall()
+
+                posts = []
+                for row in rows:
+                    posts.append({
+                        "content": row["content"],
+                        "views": int(row["views"] or 0),
+                        "likes": int(row["likes"] or 0),
+                        "replies": int(row["replies"] or 0),
+                        "created_at": row["created_at"]
+                    })
+                return posts
+        except Exception as e:
+            logger.error("[CreativeAgent] Failed to fetch recent posts for reflection: %s", e)
+            return []
 
     def get_active_rules(self) -> list[str]:
         """Fetch active creative rules from memory."""
@@ -124,14 +201,55 @@ class CreativeAgent(BaseAgent):
             # FIX BUG-07: Open one connection for all rules (atomic, faster).
             # FIX BUG-08: Use timezone-aware UTC datetime.
             with sqlite3.connect(self.memory.db_path) as conn:
-                for rule in lessons:
-                    conn.execute(
-                        """
-                        INSERT INTO creative_rules (id, rule_text, confidence, created_at, is_active)
-                        VALUES (?, ?, 0.6, ?, 1)
-                        """,
-                        (str(uuid.uuid4()), rule, datetime.now(timezone.utc).isoformat())
-                    )
+                conn.row_factory = sqlite3.Row
+                active_rows = conn.execute("SELECT id, rule_text FROM creative_rules WHERE is_active = 1").fetchall()
+                existing_texts = [r["rule_text"] for r in active_rows]
+                existing_ids = [r["id"] for r in active_rows]
+                
+                try:
+                    from sklearn.feature_extraction.text import TfidfVectorizer
+                    from sklearn.metrics.pairwise import cosine_similarity
+                    vectorizer = TfidfVectorizer(stop_words='english')
+                    
+                    for rule in lessons:
+                        if not existing_texts:
+                            new_id = str(uuid.uuid4())
+                            conn.execute(
+                                "INSERT INTO creative_rules (id, rule_text, confidence, created_at, is_active) VALUES (?, ?, 0.6, ?, 1)",
+                                (new_id, rule, datetime.now(timezone.utc).isoformat())
+                            )
+                            existing_texts.append(rule)
+                            existing_ids.append(new_id)
+                            continue
+                            
+                        all_texts = existing_texts + [rule]
+                        tfidf_matrix = vectorizer.fit_transform(all_texts)
+                        similarities = cosine_similarity(tfidf_matrix[-1:], tfidf_matrix[:-1])[0]
+                        
+                        is_duplicate = False
+                        for idx, sim in enumerate(similarities):
+                            if sim >= 0.75:
+                                matched_id = existing_ids[idx]
+                                conn.execute("UPDATE creative_rules SET confidence = MIN(1.0, confidence + 0.1) WHERE id = ?", (matched_id,))
+                                logger.info(f"[CreativeAgent] Reinforced existing creative rule {matched_id} (Similarity: {sim:.2f})")
+                                is_duplicate = True
+                                break
+                                
+                        if not is_duplicate:
+                            new_id = str(uuid.uuid4())
+                            conn.execute(
+                                "INSERT INTO creative_rules (id, rule_text, confidence, created_at, is_active) VALUES (?, ?, 0.6, ?, 1)",
+                                (new_id, rule, datetime.now(timezone.utc).isoformat())
+                            )
+                            existing_texts.append(rule)
+                            existing_ids.append(new_id)
+                except ImportError:
+                    logger.warning("[CreativeAgent] scikit-learn not installed. Skipping rule deduplication.")
+                    for rule in lessons:
+                        conn.execute(
+                            "INSERT INTO creative_rules (id, rule_text, confidence, created_at, is_active) VALUES (?, ?, 0.6, ?, 1)",
+                            (str(uuid.uuid4()), rule, datetime.now(timezone.utc).isoformat())
+                        )
         except Exception as e:
             logger.error("[CreativeAgent] Failed to update creative rules: %s", e)
 
@@ -152,8 +270,7 @@ class CreativeAgent(BaseAgent):
                     """
                     UPDATE creative_rules
                     SET confidence = MAX(0.1, confidence - decay_rate)
-                    WHERE last_validated IS NOT NULL
-                      AND last_validated < ?
+                    WHERE COALESCE(last_validated, created_at) < ?
                     """,
                     (cutoff,)
                 )
